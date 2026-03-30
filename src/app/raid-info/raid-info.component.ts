@@ -1,12 +1,13 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { ApiResponse } from '../api-model';
 import { MatGridListModule } from '@angular/material/grid-list';
-import { NgClass, NgFor, NgStyle } from '@angular/common';
+import { NgClass, NgFor, NgIf, NgStyle } from '@angular/common';
 import { groupBy } from 'lodash';
+import { config } from '../../app-config';
 
 @Component({
   selector: 'app-raid-info',
-  imports: [MatGridListModule, NgFor, NgStyle, NgClass],
+  imports: [MatGridListModule, NgFor, NgIf, NgStyle, NgClass],
   templateUrl: './raid-info.component.html',
   styleUrl: './raid-info.component.css'
 })
@@ -21,38 +22,7 @@ export class RaidInfoComponent implements OnInit {
   }
 
   groupedByRoster: string[] = ['Total'];
-  raids = [
-    {
-      name: "Serka 💀",
-      raidLevelRequirement: 1740,
-      values: [{ dps: 0, supp: 0, dpsNames: [''], suppNames: [''] }],
-    },
-    {
-      name: "Serka HM",
-      raidLevelRequirement: 1730,
-      values: [{ dps: 0, supp: 0, dpsNames: [''], suppNames: [''] }],
-    },
-    {
-      name: "Serka NM",
-      raidLevelRequirement: 1710,
-      values: [{ dps: 0, supp: 0, dpsNames: [''], suppNames: [''] }],
-    },
-    {
-      name: "Kazeros HM",
-      raidLevelRequirement: 1730,
-      values: [{ dps: 0, supp: 0, dpsNames: [''], suppNames: [''] }],
-    },
-    {
-      name: "Act 4 HM",
-      raidLevelRequirement: 1720,
-      values: [{ dps: 0, supp: 0, dpsNames: [''], suppNames: [''] }],
-    },
-    {
-      name: "Mordum HM",
-      raidLevelRequirement: 1700,
-      values: [{ dps: 0, supp: 0, dpsNames: [''], suppNames: [''] }],
-    },
-  ];
+  raids = config.raids;
 
   characterRaidCount: { [key: string]: number } = {};
 
@@ -62,7 +32,8 @@ export class RaidInfoComponent implements OnInit {
 
   generateColumns(count: number) {
     this.raids.forEach((raid) => {
-      for (let index = 0; index < count; index++) {
+      console.error(!!raid.hideRaid)
+      for (let index = 0; index <= count; index++) {
         raid.values.push({ dps: 0, supp: 0, dpsNames: [''], suppNames: [''] })
       }
     })
@@ -167,7 +138,7 @@ export class RaidInfoComponent implements OnInit {
   }
 
   isMaximumRaidCountReached(char: ApiResponse): boolean {
-    return this.characterRaidCount[char.CharacterName] === 3
+    return this.characterRaidCount[char.CharacterName] === 3;
   }
 
   initializeCharacterRaidCount(char: ApiResponse) {

@@ -3,8 +3,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { ApiService } from '../../services/api.service';
 import { first } from 'rxjs';
 import { isNull } from 'lodash';
-import { environment } from '../../environments/environment';
 import { NgIf } from '@angular/common';
+import { config } from '../../app-config';
 
 interface User {
   discord_id: string,
@@ -48,7 +48,7 @@ export class HeaderComponent implements OnInit {
   }
 
   redirectDiscordLogin() {
-    window.location.href = `${environment.apiUrl}/auth/discord/login`;
+    window.location.href = `${config.api.endPoint}/auth/discord/login`;
   }
 
   isUserSet() {

@@ -8,24 +8,26 @@
         </thead>
         <tbody>
             <tr *ngFor="let raid of raids">
-                <td>
-                    {{ raid.name }}
-                    <h6 class="raidLevel">{{raid.raidLevelRequirement}}</h6>
-                </td>
-                <td *ngFor="let value of raid.values">
-                    <div class="role-container">
-                        <span class="dps circle tooltip" [ngClass]="{hide: value.dps == 0}">{{ value.dps }}
-                            <span class="tooltiptext">
-                                <span *ngFor="let names of value.dpsNames">{{names}}</span>
+                <ng-container *ngIf="!raid.hideRaid">
+                    <td>
+                        {{ raid.name }}
+                        <h6 class="raidLevel">{{raid.raidLevelRequirement}}</h6>
+                    </td>
+                    <td *ngFor="let value of raid.values">
+                        <div class="role-container">
+                            <span class="dps circle tooltip" [ngClass]="{hide: value.dps == 0}">{{ value.dps }}
+                                <span class="tooltiptext">
+                                    <span *ngFor="let names of value.dpsNames">{{names}}</span>
+                                </span>
                             </span>
-                        </span>
-                        <span class="supp circle tooltip" [ngClass]="{hide: value.supp == 0}">{{ value.supp }}
-                            <span class="tooltiptext">
-                                <span *ngFor="let names of value.suppNames">{{names}}</span>
+                            <span class="supp circle tooltip" [ngClass]="{hide: value.supp == 0}">{{ value.supp }}
+                                <span class="tooltiptext">
+                                    <span *ngFor="let names of value.suppNames">{{names}}</span>
+                                </span>
                             </span>
-                        </span>
-                    </div>
-                </td>
+                        </div>
+                    </td>
+                </ng-container>
             </tr>
         </tbody>
     </table>

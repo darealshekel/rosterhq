@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../environments/environment';
+import { config } from '../app-config';
 
 @Injectable({
   providedIn: 'root'
@@ -11,18 +11,18 @@ export class ApiService {
   constructor(private http: HttpClient) { }
 
   getRosters(): Observable<any> {
-    return this.http.get(`${environment.apiUrl}/getRoster?rostergroupid=${environment.rosterGroupId}`);
+    return this.http.get(`${config.api.endPoint}/getRoster?rostergroupid=${config.api.staticId}`);
   }
 
   getHistory(): Observable<any> {
-    return this.http.get(`${environment.apiUrl}/getHistory?rostergroupid=${environment.rosterGroupId}`);
+    return this.http.get(`${config.api.endPoint}/getHistory?rostergroupid=${config.api.staticId}`);
   }
 
   getUser(): Observable<any> {
-    return this.http.get(`${environment.apiUrl}/getUser`, { withCredentials: true });
+    return this.http.get(`${config.api.endPoint}/getUser`, { withCredentials: true });
   }
 
   logoutUser(): Observable<any> {
-    return this.http.get(`${environment.apiUrl}/logout`, { withCredentials: true });
+    return this.http.get(`${config.api.endPoint}/logout`, { withCredentials: true });
   }
 }

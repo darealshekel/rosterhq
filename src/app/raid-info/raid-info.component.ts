@@ -50,8 +50,8 @@ export class RaidInfoComponent implements OnInit {
         this.initializeCharacterRaidCount(char)
         this.updateSerkaRunCount(0, i, char)
         this.updateKazerosRunCount(3, i, char)
-        this.updateAct4RunCount(4, i, char)
-        this.updateMordumRunCount(5, i, char)
+        this.updateAct4RunCount(5, i, char)
+        this.updateMordumRunCount(7, i, char)
       }
     }
   }
@@ -60,15 +60,15 @@ export class RaidInfoComponent implements OnInit {
     switch (true) {
       case char.Level >= 1740:
         // NM
-        this.increamentRoleByClassName(rowIndex, indexToUpdate, char, true)
+        this.increamentRoleByClassName(rowIndex, indexToUpdate, char)
         break;
       case char.Level >= 1730:
         // HM
-        this.increamentRoleByClassName(rowIndex + 1, indexToUpdate, char, true)
+        this.increamentRoleByClassName(rowIndex + 1, indexToUpdate, char)
         break;
       case char.Level >= 1710:
         // NM
-        this.increamentRoleByClassName(rowIndex + 2, indexToUpdate, char, true)
+        this.increamentRoleByClassName(rowIndex + 2, indexToUpdate, char)
         break;
       default:
         break;
@@ -81,6 +81,10 @@ export class RaidInfoComponent implements OnInit {
         // HM
         this.increamentRoleByClassName(rowIndex, indexToUpdate, char)
         break;
+      case char.Level >= 1710:
+        // NM
+        this.increamentRoleByClassName(rowIndex + 1, indexToUpdate, char)
+        break;
       default:
         break;
     }
@@ -91,6 +95,10 @@ export class RaidInfoComponent implements OnInit {
       case char.Level >= 1720:
         // HM
         this.increamentRoleByClassName(rowIndex, indexToUpdate, char)
+        break;
+      case char.Level >= 1700:
+        // NM
+        this.increamentRoleByClassName(rowIndex + 1, indexToUpdate, char)
         break;
       default:
         break;

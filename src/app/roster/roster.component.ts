@@ -352,16 +352,17 @@ export class RosterComponent {
   }
 
   private restoreState(): void {
-    if (typeof localStorage === 'undefined') {
-      return;
-    }
-
-    const rawState = localStorage.getItem(this.storageKey);
-    if (!rawState) {
+    const storage = this.getStorage();
+    if (!storage) {
       return;
     }
 
     try {
+      const rawState = storage.getItem(this.storageKey);
+      if (!rawState) {
+        return;
+      }
+
       const parsedState = JSON.parse(rawState) as
         | Record<string, boolean>
         | { completionState?: Record<string, boolean>; chestState?: Record<string, boolean> };
@@ -379,16 +380,33 @@ export class RosterComponent {
   }
 
   private saveState(): void {
-    if (typeof localStorage === 'undefined') {
+    const storage = this.getStorage();
+    if (!storage) {
       return;
     }
 
-    localStorage.setItem(
-      this.storageKey,
-      JSON.stringify({
-        completionState: this.completionState,
-        chestState: this.chestState
-      })
-    );
+    try {
+      storage.setItem(
+        this.storageKey,
+        JSON.stringify({
+          completionState: this.completionState,
+          chestState: this.chestState
+        })
+      );
+    } catch {
+      // Ignore storage write failures in restricted browsing contexts.
+    }
+  }
+
+  private getStorage(): Storage | null {
+    try {
+      if (typeof window === 'undefined') {
+        return null;
+      }
+
+      return window.localStorage;
+    } catch {
+      return null;
+    }
   }
 }

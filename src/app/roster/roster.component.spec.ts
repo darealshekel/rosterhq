@@ -22,6 +22,17 @@ describe('RosterComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('still initializes when localStorage access is blocked', () => {
+    const storageGetter = spyOnProperty(window, 'localStorage', 'get').and.throwError('SecurityError');
+
+    expect(() => {
+      const blockedFixture = TestBed.createComponent(RosterComponent);
+      blockedFixture.detectChanges();
+    }).not.toThrow();
+
+    storageGetter.and.callThrough();
+  });
+
   it('updates only the toggled planner state without rebuilding the planner tree', () => {
     const rosters: GroupRoster[] = [
       {

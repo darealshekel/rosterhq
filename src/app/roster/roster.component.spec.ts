@@ -33,6 +33,45 @@ describe('RosterComponent', () => {
     storageGetter.and.callThrough();
   });
 
+  it('still builds planner rosters when string normalization is unavailable', () => {
+    const normalizeSpy = spyOn(String.prototype, 'normalize').and.throwError('Unsupported normalize');
+    const rosters: GroupRoster[] = [
+      {
+        key: 'test',
+        title: 'Normalize Test',
+        sourcePath: '/character/test',
+        sourceCharacter: 'Tester',
+        bannerImage: '',
+        bannerAccent: '#ff5fab',
+        averageItemLevel: 0,
+        averageCombatPower: 0,
+        highestItemLevel: 0,
+        allCharacters: [],
+        characters: [
+          {
+            id: 999,
+            name: 'Bröke',
+            classKey: 'soul_eater',
+            classLabel: 'Souleater',
+            itemLevel: 1745,
+            combatPower: 5000,
+            combatPowerIsEstimate: false,
+            lastUpdate: 1,
+            characterUrl: 'https://example.com/broke'
+          }
+        ]
+      }
+    ];
+
+    expect(() => {
+      component.rosters = rosters;
+    }).not.toThrow();
+
+    expect(component.plannerRosters.length).toBe(1);
+    expect(component.plannerRosters[0].plannerRows.length).toBe(1);
+    normalizeSpy.and.callThrough();
+  });
+
   it('updates only the toggled planner state without rebuilding the planner tree', () => {
     const rosters: GroupRoster[] = [
       {

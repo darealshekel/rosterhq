@@ -92,7 +92,11 @@ export class RosterComponent {
 
   @Input()
   set rosters(value: GroupRoster[]) {
-    this.plannerRosters = value.map((roster) => this.buildPlannerRoster(roster));
+    try {
+      this.plannerRosters = value.map((roster) => this.buildPlannerRoster(roster));
+    } catch {
+      this.plannerRosters = value.map((roster) => this.buildFallbackPlannerRoster(roster));
+    }
   }
 
   constructor() {
@@ -215,6 +219,32 @@ export class RosterComponent {
     };
   }
 
+  private buildFallbackPlannerRoster(roster: GroupRoster): PlannerRosterView {
+    const plannerRows = roster.characters.map((character) => ({
+      id: character.id,
+      name: character.name,
+      classKey: character.classKey,
+      classLabel: character.classLabel,
+      itemLevel: character.itemLevel,
+      combatPower: character.combatPower,
+      combatPowerIsEstimate: character.combatPowerIsEstimate,
+      characterUrl: character.characterUrl,
+      lastUpdate: character.lastUpdate,
+      raidsByFamily: this.raidFamilies.reduce<Record<string, CharacterPlannerRaid | undefined>>((acc, family) => {
+        acc[family.key] = undefined;
+        return acc;
+      }, {}),
+      totalGold: 0
+    }));
+
+    return {
+      ...roster,
+      plannerRows,
+      plannerTotalGold: 0,
+      plannerCompletedCount: 0
+    };
+  }
+
   private buildPlannerRow(character: CharacterEntry): CharacterPlannerRow {
     const raidsByFamily = this.raidFamilies.reduce<Record<string, CharacterPlannerRaid | undefined>>((acc, family) => {
       const tier = this.resolveTier(character, family);
@@ -275,9 +305,15 @@ export class RosterComponent {
   }
 
   private canRunSercaNightmare(characterName: string): boolean {
-    const normalizedName = characterName
-      .toLowerCase()
-      .normalize('NFKD')
+    let normalizedName = characterName.toLowerCase();
+
+    try {
+      normalizedName = normalizedName.normalize('NFKD');
+    } catch {
+      // Some restricted or older browser contexts may not support string normalization.
+    }
+
+    normalizedName = normalizedName
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/ß/g, 'ss');
 

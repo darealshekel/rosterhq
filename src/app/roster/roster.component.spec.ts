@@ -165,4 +165,63 @@ describe('RosterComponent', () => {
     expect(rowRef.totalGold).toBe(131360);
     expect(rosterRef.plannerTotalGold).toBe(131360);
   });
+
+  it('applies serca hm and nm chest deductions to totals', () => {
+    const rosters: GroupRoster[] = [
+      {
+        key: 'test',
+        title: 'Serca Chest Test',
+        sourcePath: '/character/test',
+        sourceCharacter: 'Tester',
+        bannerImage: '',
+        bannerAccent: '#ff5fab',
+        averageItemLevel: 0,
+        averageCombatPower: 0,
+        highestItemLevel: 0,
+        allCharacters: [],
+        characters: [
+          {
+            id: 401,
+            name: 'HM Tester',
+            classKey: 'blade',
+            classLabel: 'Deathblade',
+            itemLevel: 1735,
+            combatPower: 4000,
+            combatPowerIsEstimate: false,
+            lastUpdate: 1,
+            characterUrl: 'https://example.com/hm'
+          },
+          {
+            id: 402,
+            name: 'NM Tester',
+            classKey: 'bard',
+            classLabel: 'Bard',
+            itemLevel: 1715,
+            combatPower: 3000,
+            combatPowerIsEstimate: false,
+            lastUpdate: 1,
+            characterUrl: 'https://example.com/nm'
+          }
+        ]
+      }
+    ];
+
+    component.rosters = rosters;
+
+    const rosterRef = component.plannerRosters[0];
+    const hmRowRef = rosterRef.plannerRows[0];
+    const nmRowRef = rosterRef.plannerRows[1];
+
+    expect(hmRowRef.raidsByFamily['serca']?.raidKey).toBe('serca-hm');
+    expect(nmRowRef.raidsByFamily['serca']?.raidKey).toBe('serca-nm');
+
+    component.onChestToggle(401, 'serca-hm', true);
+    component.onChestToggle(402, 'serca-nm', true);
+
+    expect(hmRowRef.raidsByFamily['serca']?.buysChest).toBeTrue();
+    expect(nmRowRef.raidsByFamily['serca']?.buysChest).toBeTrue();
+    expect(hmRowRef.totalGold).toBe(123920);
+    expect(nmRowRef.totalGold).toBe(96800);
+    expect(rosterRef.plannerTotalGold).toBe(220720);
+  });
 });

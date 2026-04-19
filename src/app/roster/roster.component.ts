@@ -81,8 +81,8 @@ export class RosterComponent {
       key: 'serca',
       title: 'Serca',
       tiers: [
-        { key: 'serca-nm', difficulty: 'NM', itemLevel: 1710, gold: 35000 },
-        { key: 'serca-hm', difficulty: 'HM', itemLevel: 1730, gold: 44000 },
+        { key: 'serca-nm', difficulty: 'NM', itemLevel: 1710, gold: 35000, chestCost: 11200 },
+        { key: 'serca-hm', difficulty: 'HM', itemLevel: 1730, gold: 44000, chestCost: 14080 },
         { key: 'serca-nightmare', difficulty: 'NIGHTMARE', itemLevel: 1740, gold: 54000, chestCost: 17280 }
       ]
     }

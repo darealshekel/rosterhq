@@ -20,9 +20,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   weeklyReset = '--D --H --M --S';
 
   ngOnInit(): void {
-    this.updateResetTimers();
+    this.safeUpdateResetTimers();
     if (typeof window !== 'undefined') {
-      this.intervalId = window.setInterval(() => this.updateResetTimers(), 1000);
+      this.intervalId = window.setInterval(() => this.safeUpdateResetTimers(), 1000);
     }
   }
 
@@ -37,7 +37,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   averagePeakLevel(): number {
-    if (!this.rosters.length) {
+    if (!Array.isArray(this.rosters) || !this.rosters.length) {
       return 0;
     }
 
@@ -52,6 +52,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     this.dailyReset = this.formatDailyCountdown(dailyTarget.getTime() - now.getTime());
     this.weeklyReset = this.formatWeeklyCountdown(weeklyTarget.getTime() - now.getTime());
+  }
+
+  private safeUpdateResetTimers(): void {
+    try {
+      this.updateResetTimers();
+    } catch {
+      this.dailyReset = '--H --M --S';
+      this.weeklyReset = '--D --H --M --S';
+    }
   }
 
   private getNextReset(now: Date, weekly: boolean): Date {
@@ -135,16 +144,30 @@ export class HeaderComponent implements OnInit, OnDestroy {
     minute: number;
     second: number;
   } {
-    const formatter = new Intl.DateTimeFormat('en-GB', {
-      timeZone: this.resetTimeZone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hourCycle: 'h23'
-    });
+    let formatter: Intl.DateTimeFormat;
+
+    try {
+      formatter = new Intl.DateTimeFormat('en-GB', {
+        timeZone: this.resetTimeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hourCycle: 'h23'
+      });
+    } catch {
+      formatter = new Intl.DateTimeFormat('en-GB', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hourCycle: 'h23'
+      });
+    }
 
     const parts = formatter.formatToParts(date);
     const getValue = (type: Intl.DateTimeFormatPartTypes) =>

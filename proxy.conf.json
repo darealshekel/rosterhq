@@ -1,0 +1,11 @@
+{
+  "/lostark-bible": {
+    "target": "https://lostark.bible",
+    "secure": true,
+    "changeOrigin": true,
+    "pathRewrite": {
+      "^/lostark-bible": ""
+    },
+    "logLevel": "silent"
+  }
+}

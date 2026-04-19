@@ -1,21 +1,16 @@
-<app-header></app-header>
+<app-header [rosters]="rostersData" [loading]="isLoading"></app-header>
 
-<div *ngIf="status == 'pending' && isLoading" class="gif-container">
-    <mat-progress-spinner class="spinner" [mode]="mode">
-    </mat-progress-spinner>
-    <img src="Taiyakis_Api.gif">
+<div *ngIf="status === 'pending' && isLoading" class="loading-state">
+  <mat-progress-spinner class="spinner" [mode]="mode"></mat-progress-spinner>
+  <p>Fetching your live rosters from lostark.bible...</p>
 </div>
 
-<div *ngIf="status == 'error'" class="not-found-container">
-    <p>API is deadge, sry</p>
-    <img src="Deadge.png">
+<div *ngIf="status === 'error'" class="error-state">
+  <h2>Roster sync failed</h2>
+  <p>{{ errorMessage }}</p>
+  <button type="button" class="retry-button" (click)="loadRosters()">Try again</button>
 </div>
 
-<app-raid-info [rosters]="rostersData"></app-raid-info>
-<app-roster id="goTop" [rosters]="rostersData"></app-roster>
-
-<a href="#goTop" *ngIf="showTopButton">
-    <button mat-icon-button class="go-to-top">
-        <mat-icon>arrow_upward</mat-icon>
-    </button>
-</a>
+<ng-container *ngIf="status === 'success'">
+  <app-roster [rosters]="rostersData"></app-roster>
+</ng-container>

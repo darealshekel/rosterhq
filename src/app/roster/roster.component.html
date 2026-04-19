@@ -1,70 +1,120 @@
-<div class="event-container">
-    <div class="event-header-containter" [ngStyle]="{ 'display': charactersHistory.length != 0 ? 'flex' : 'none' }">
-        <img src="ArtistCaught.png" alt="">
-        <div class="event-header">
-            <div class="event-header-text-containter">
-                <span class="event-header-text">Sneaky Honers</span>
-            </div>
-            <div class="event-header-filter-containter">
-                <span class="event-header-filter" (click)="onFilterChange('day')"
-                    [ngClass]="{ 'active-button': 'day' == currentFilter }">Day</span>
-                <span class="event-header-filter" (click)="onFilterChange('weekly')"
-                    [ngClass]="{ 'active-button': 'weekly' == currentFilter }">Week</span>
-            </div>
+<div class="roster-grid" *ngIf="plannerRosters.length > 0">
+  <section class="roster-panel" *ngFor="let roster of plannerRosters; trackBy: trackRoster" [style.--roster-accent]="roster.bannerAccent">
+    <div
+      class="roster-banner"
+      [class.roster-banner-has-image]="!!roster.bannerImage"
+      [attr.data-roster]="roster.key"
+      [style.--banner-image-url]="getBannerImageUrl(roster.bannerImage)"
+    >
+      <div class="banner-copy">
+        <p class="panel-kicker">{{ roster.sourceCharacter }}</p>
+        <h2>{{ roster.title }}</h2>
+      </div>
+      <header class="roster-panel-header">
+        <div class="roster-stats">
+          <div>
+            <span class="stat-label">Avg ilvl</span>
+            <span class="stat-value">{{ roster.averageItemLevel | number:'1.2-2' }}</span>
+          </div>
+          <div>
+            <span class="stat-label">Peak ilvl</span>
+            <span class="stat-value">{{ roster.highestItemLevel | number:'1.2-2' }}</span>
+          </div>
+          <div>
+            <span class="stat-label">Planned gold</span>
+            <span class="stat-value">{{ roster.plannerTotalGold | number:'1.0-0' }}</span>
+          </div>
+          <div>
+            <span class="stat-label">Planned raids</span>
+            <span class="stat-value">{{ roster.plannerCompletedCount }}</span>
+          </div>
         </div>
-        <img src="ArtistCaught.png" alt="">
+      </header>
     </div>
-    <ng-container *ngFor="let character of filteredHistory">
-        <div class="event">
-            <div class="name-container"><a href="#{{character.CharacterName}}"
-                    (click)="addHighlightClass(character.CharacterName)"><span>{{ character.CharacterName
-                        }}</span></a></div>
-            <div class="level-container"><span>{{ getLevelChanges(character.CharacterName, false) }}</span></div>
-        </div>
-    </ng-container>
-</div>
 
-<div class="filters-container">
-    <span class="filter-button" (click)="onRosterFilterChange('Highest')"
-        [ngClass]="{ 'active-button': 'Highest' == currentRosterFilter }">Highest</span>
-    <span class="filter-button" (click)="onRosterFilterChange('Average')"
-        [ngClass]="{ 'active-button': 'Average' == currentRosterFilter }">Average</span>
-    <span class="filter-button" (click)="onRosterFilterChange('Lowest')"
-        [ngClass]="{ 'active-button': 'Lowest' == currentRosterFilter }">Lowest</span>
-</div>
+    <section class="planner-shell">
+      <div class="planner-shell-header">
+        <div>
+          <h3>WEEKLY GOLD PLANNER</h3>
+        </div>
+        <div class="planner-shell-total">
+          <span>Roster total</span>
+          <strong>{{ roster.plannerTotalGold | number:'1.0-0' }}</strong>
+        </div>
+      </div>
 
-<div class="container">
-    <div class="roster-container" *ngFor="let name of rosterNames">
-        <div class="roster-header" [ngStyle]="{ 'background-image': 'url(' + banner[name] + ')' }">
-            <h1>{{ name }}</h1>
-            <span class="average-level">{{averageRosterLevel[name]}}</span>
-        </div>
-        <div class="roster">
-            <ng-container *ngFor="let character of groupedData[name]" class="character">
-                <mat-grid-list cols="3" rowHeight="30px" class="character">
-                    <mat-grid-tile [id]="character.CharacterName" class="name" [colspan]="2" [rowspan]="1">
-                        {{ character.CharacterName }}
-                    </mat-grid-tile>
-                    <mat-grid-tile class="uwu" [colspan]="1" [rowspan]="1">
-                        <a href="https://uwuowo.mathi.moe/character/CE/{{character.CharacterName}}"
-                            target="_blank">Gear</a>
-                    </mat-grid-tile>
-                    <mat-grid-tile class="combat" [colspan]="2" [rowspan]="1">
-                        <img [src]="displayRoleIcon(character.IsSupport)" width="20" height="20" />
-                        {{ character.Score }}
-                    </mat-grid-tile>
-                    <mat-grid-tile class="classImg tooltip" [colspan]="1" [rowspan]="2">
-                        <img [src]=displayClassImg(character.ClassName) alt="">
-                        <span class="tooltiptext">
-                            {{ character.ClassName }}<br>
-                        </span>
-                    </mat-grid-tile>
-                    <mat-grid-tile class="level" [colspan]="2" [rowspan]="1">
-                        {{ character.Level }}<span [class.levelChanges]="isCharacterChanged(character.CharacterName)">{{
-                            getLevelChanges(character.CharacterName, true, character.Level) }}</span>
-                    </mat-grid-tile>
-                </mat-grid-list>
-            </ng-container>
-        </div>
-    </div>
+      <div class="planner-rows">
+        <article class="planner-row-card" *ngFor="let character of roster.plannerRows; trackBy: trackCharacter">
+          <div class="planner-card-top">
+            <div class="planner-row-header">
+              <div class="planner-character-copy">
+                <div class="planner-character-title">
+                  <span class="class-badge" [style.--class-accent]="getClassAccent(character.classKey)">
+                    {{ getClassBadgeLabel(character.classKey, character.classLabel) }}
+                  </span>
+                  <strong>{{ character.name }}</strong>
+                </div>
+                <span class="planner-character-class">{{ character.classLabel }}</span>
+              </div>
+
+              <a class="planner-row-link" [href]="character.characterUrl" target="_blank" rel="noreferrer">Profile</a>
+            </div>
+
+            <div class="planner-character-metrics">
+              <span class="planner-metric">ilvl {{ character.itemLevel | number:'1.2-2' }}</span>
+              <span class="planner-metric planner-metric-combat">
+                <svg viewBox="0 0 24 24" width="1.1em" height="1.1em" class="combat-icon">
+                  <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l6-6m-3 3l4 4m-1 1l2-2M14.5 6.5L18 3h3v3l-3.5 3.5M5 14l4 4m-2-1l-3 3m-1-1l2 2"></path>
+                </svg>
+                {{ character.combatPower | number:'1.2-2' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="planner-card-middle">
+            <div class="planner-total-block">
+              <span>Total</span>
+              <strong>{{ character.totalGold | number:'1.0-0' }}</strong>
+            </div>
+          </div>
+
+          <div class="planner-card-bottom">
+            <div class="planner-raid-grid">
+              <article class="planner-raid-slot" *ngFor="let family of raidFamilies; trackBy: trackRaidFamily">
+                <span class="planner-slot-label">{{ family.title }}</span>
+                <ng-container *ngIf="character.raidsByFamily[family.key] as raid; else notEligible">
+                  <label class="planner-raid-toggle" [class.checked]="raid.completed">
+                    <input
+                      type="checkbox"
+                      [checked]="raid.completed"
+                      (change)="onRaidToggle(character.id, raid.raidKey, $any($event.target).checked)"
+                    />
+                    <span class="planner-toggle-copy">
+                      <strong>{{ getDifficultyLabel(raid.difficulty) }}</strong>
+                      <small>{{ raid.gold | number:'1.0-0' }}</small>
+                    </span>
+                  </label>
+                  <label class="planner-chest-toggle" *ngIf="raid.chestCost > 0" [class.checked]="raid.buysChest" [class.disabled]="!raid.completed">
+                    <input
+                      type="checkbox"
+                      [checked]="raid.buysChest"
+                      [disabled]="!raid.completed"
+                      (change)="onChestToggle(character.id, raid.raidKey, $any($event.target).checked)"
+                    />
+                    <span class="planner-chest-copy">
+                      <strong>Chest</strong>
+                      <small>-{{ raid.chestCost | number:'1.0-0' }}</small>
+                    </span>
+                  </label>
+                </ng-container>
+                <ng-template #notEligible>
+                  <span class="planner-empty-cell">Unavailable</span>
+                </ng-template>
+              </article>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </section>
 </div>

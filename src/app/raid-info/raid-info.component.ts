@@ -1,156 +1,275 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { ApiResponse } from '../api-model';
-import { MatGridListModule } from '@angular/material/grid-list';
-import { NgClass, NgFor, NgIf, NgStyle } from '@angular/common';
-import { groupBy } from 'lodash';
-import { config } from '../../app-config';
+import { Component, Input } from '@angular/core';
+import { DecimalPipe, NgClass, NgFor, NgIf } from '@angular/common';
+import { CharacterEntry, GroupRoster, RaidColumn, RaidRow, RosterGoldSummary } from '../api-model';
+
+interface RaidDefinition {
+  key: string;
+  family: string;
+  name: string;
+  itemLevel: number;
+  defaultGold: number;
+}
+
+interface PlannerRaidState {
+  raidKey: string;
+  name: string;
+  gold: number;
+  completed: boolean;
+}
+
+interface CharacterPlannerRow {
+  id: number;
+  name: string;
+  classLabel: string;
+  itemLevel: number;
+  combatPower: number;
+  combatPowerIsEstimate: boolean;
+  bonusGold: number;
+  totalGold: number;
+  eligibleRaids: PlannerRaidState[];
+}
+
+interface PlannerRosterGroup {
+  key: string;
+  title: string;
+  accent: string;
+  rows: CharacterPlannerRow[];
+}
 
 @Component({
   selector: 'app-raid-info',
-  imports: [MatGridListModule, NgFor, NgIf, NgStyle, NgClass],
+  imports: [NgFor, NgIf, NgClass, DecimalPipe],
   templateUrl: './raid-info.component.html',
   styleUrl: './raid-info.component.css'
 })
+export class RaidInfoComponent {
+  private readonly storageKey = 'roster-hq-gold-planner-v2';
+  private readonly raidDefinitions: RaidDefinition[] = [
+    { key: 'serka-hm', family: 'serka', name: 'Serka HM', itemLevel: 1730, defaultGold: 0 },
+    { key: 'serka-nm', family: 'serka', name: 'Serka NM', itemLevel: 1710, defaultGold: 0 },
+    { key: 'kazeros-hm', family: 'kazeros', name: 'Kazeros HM', itemLevel: 1730, defaultGold: 0 },
+    { key: 'kazeros-nm', family: 'kazeros', name: 'Kazeros NM', itemLevel: 1710, defaultGold: 0 },
+    { key: 'act-4-hm', family: 'act-4', name: 'Act 4 HM', itemLevel: 1720, defaultGold: 0 },
+    { key: 'act-4-nm', family: 'act-4', name: 'Act 4 NM', itemLevel: 1700, defaultGold: 0 }
+  ];
 
-export class RaidInfoComponent implements OnInit {
+  private completionState: Record<string, Record<string, boolean>> = {};
+  private goldState: Record<string, number> = {};
+  private bonusGoldState: Record<string, number> = {};
+
+  rosterHeaders: GroupRoster[] = [];
+  raidRows: RaidRow[] = [];
+  rosterSummaries: RosterGoldSummary[] = [];
+  plannerGroups: PlannerRosterGroup[] = [];
+
   @Input()
-  set rosters(value: ApiResponse[]) {
-    if (value.length == 0)
-      return;
-
-    this.groupByRoster(value);
+  set rosters(value: GroupRoster[]) {
+    this.rosterHeaders = value;
+    this.refreshPlanner();
   }
 
-  groupedByRoster: string[] = ['Total'];
-  raids = config.raids;
+  constructor() {
+    this.restoreState();
+  }
 
-  characterRaidCount: { [key: string]: number } = {};
+  private refreshPlanner(): void {
+    this.raidRows = this.buildRaidRows(this.rosterHeaders);
+    this.plannerGroups = this.buildPlannerGroups(this.rosterHeaders);
+    this.rosterSummaries = this.buildRosterSummaries(this.plannerGroups);
+    this.saveState();
+  }
 
-  constructor() { }
+  private buildRaidRows(rosters: GroupRoster[]): RaidRow[] {
+    return this.raidDefinitions.map((raid) => {
+      const goldReward = this.goldState[raid.key] ?? raid.defaultGold;
+      const rosterColumns: RaidColumn[] = rosters.map((roster) => {
+        const eligibleCharacters = roster.allCharacters.filter((character) => this.isRaidEligible(character, raid));
+        const completedCount = eligibleCharacters.filter(
+          (character) => this.completionState[this.characterKey(character.id)]?.[raid.key]
+        ).length;
 
-  ngOnInit(): void { }
+        return {
+          key: roster.key,
+          count: eligibleCharacters.length,
+          names: eligibleCharacters.map((character) => character.name),
+          completedCount,
+          earnedGold: completedCount * goldReward
+        };
+      });
 
-  generateColumns(count: number) {
-    this.raids.forEach((raid) => {
-      console.error(!!raid.hideRaid)
-      for (let index = 0; index <= count; index++) {
-        raid.values.push({ dps: 0, supp: 0, dpsNames: [''], suppNames: [''] })
+      return {
+        key: raid.key,
+        family: raid.family,
+        name: raid.name,
+        itemLevel: raid.itemLevel,
+        goldReward,
+        totalEligible: rosterColumns.reduce((sum, column) => sum + column.count, 0),
+        everyRosterReady: rosterColumns.every((column) => column.count > 0),
+        rosterColumns
+      };
+    });
+  }
+
+  private buildPlannerGroups(rosters: GroupRoster[]): PlannerRosterGroup[] {
+    return rosters.map((roster) => ({
+      key: roster.key,
+      title: roster.title,
+      accent: roster.bannerAccent,
+      rows: roster.allCharacters.map((character) => this.buildCharacterPlannerRow(character))
+    }));
+  }
+
+  private buildCharacterPlannerRow(character: CharacterEntry): CharacterPlannerRow {
+    const eligibleRaids = this.getEligibleRaids(character).map((raid) => {
+      const raidKey = this.characterKey(character.id);
+      const gold = this.goldState[raid.key] ?? raid.defaultGold;
+
+      return {
+        raidKey: raid.key,
+        name: raid.name,
+        gold,
+        completed: this.completionState[raidKey]?.[raid.key] ?? false
+      };
+    });
+
+    const bonusGold = this.bonusGoldState[this.characterKey(character.id)] ?? 0;
+    const totalGold = eligibleRaids.reduce(
+      (sum, raid) => sum + (raid.completed ? raid.gold : 0),
+      bonusGold
+    );
+
+    return {
+      id: character.id,
+      name: character.name,
+      classLabel: character.classLabel,
+      itemLevel: character.itemLevel,
+      combatPower: character.combatPower,
+      combatPowerIsEstimate: character.combatPowerIsEstimate,
+      bonusGold,
+      totalGold,
+      eligibleRaids
+    };
+  }
+
+  private buildRosterSummaries(groups: PlannerRosterGroup[]): RosterGoldSummary[] {
+    return groups.map((group) => ({
+      key: group.key,
+      title: group.title,
+      totalGold: group.rows.reduce((sum, row) => sum + row.totalGold, 0),
+      completedRaids: group.rows.reduce(
+        (sum, row) => sum + row.eligibleRaids.filter((raid) => raid.completed).length,
+        0
+      ),
+      availableRaids: group.rows.reduce((sum, row) => sum + row.eligibleRaids.length, 0)
+    }));
+  }
+
+  private getEligibleRaids(character: CharacterEntry): RaidDefinition[] {
+    return this.raidDefinitions.filter((raid) => this.isRaidEligible(character, raid));
+  }
+
+  private isRaidEligible(character: CharacterEntry, raid: RaidDefinition): boolean {
+    if (character.itemLevel < raid.itemLevel) {
+      return false;
+    }
+
+    return !this.raidDefinitions.some(
+      (candidate) =>
+        candidate.family === raid.family &&
+        candidate.itemLevel > raid.itemLevel &&
+        character.itemLevel >= candidate.itemLevel
+    );
+  }
+
+  onCompletionToggle(characterId: number, raidKey: string, completed: boolean): void {
+    const plannerKey = this.characterKey(characterId);
+    this.completionState = {
+      ...this.completionState,
+      [plannerKey]: {
+        ...(this.completionState[plannerKey] ?? {}),
+        [raidKey]: completed
       }
-    })
+    };
+    this.refreshPlanner();
   }
 
-  groupByRoster(value: ApiResponse[]) {
-    const groupByRosterName = groupBy(value, 'RosterName')
-    this.generateColumns(Object.keys(groupByRosterName).length)
-    this.groupedByRoster = this.groupedByRoster.concat(Object.keys(groupByRosterName))
-    for (let i = 1; i < this.groupedByRoster.length; i++) {
-      const rosterName = this.groupedByRoster[i];
-      for (let k = 0; k < groupByRosterName[rosterName].length; k++) {
-        const char = groupByRosterName[rosterName][k];
-        this.initializeCharacterRaidCount(char)
-        this.updateSerkaRunCount(0, i, char)
-        this.updateKazerosRunCount(3, i, char)
-        this.updateAct4RunCount(5, i, char)
-        this.updateMordumRunCount(7, i, char)
-      }
-    }
+  onGoldRewardChange(raidKey: string, rawValue: string): void {
+    const parsedValue = Number(rawValue);
+    this.goldState = {
+      ...this.goldState,
+      [raidKey]: Number.isFinite(parsedValue) && parsedValue > 0 ? Math.round(parsedValue) : 0
+    };
+    this.refreshPlanner();
   }
 
-  updateSerkaRunCount(rowIndex: number, indexToUpdate: number, char: ApiResponse) {
-    switch (true) {
-      case char.Level >= 1740:
-        // NM
-        this.increamentRoleByClassName(rowIndex, indexToUpdate, char)
-        break;
-      case char.Level >= 1730:
-        // HM
-        this.increamentRoleByClassName(rowIndex + 1, indexToUpdate, char)
-        break;
-      case char.Level >= 1710:
-        // NM
-        this.increamentRoleByClassName(rowIndex + 2, indexToUpdate, char)
-        break;
-      default:
-        break;
-    }
+  onBonusGoldChange(characterId: number, rawValue: string): void {
+    const parsedValue = Number(rawValue);
+    this.bonusGoldState = {
+      ...this.bonusGoldState,
+      [this.characterKey(characterId)]: Number.isFinite(parsedValue) && parsedValue > 0 ? Math.round(parsedValue) : 0
+    };
+    this.refreshPlanner();
   }
 
-  updateKazerosRunCount(rowIndex: number, indexToUpdate: number, char: ApiResponse) {
-    switch (true) {
-      case char.Level >= 1730:
-        // HM
-        this.increamentRoleByClassName(rowIndex, indexToUpdate, char)
-        break;
-      case char.Level >= 1710:
-        // NM
-        this.increamentRoleByClassName(rowIndex + 1, indexToUpdate, char)
-        break;
-      default:
-        break;
-    }
+  overallGoldTotal(): number {
+    return this.rosterSummaries.reduce((sum, summary) => sum + summary.totalGold, 0);
   }
 
-  updateAct4RunCount(rowIndex: number, indexToUpdate: number, char: ApiResponse) {
-    switch (true) {
-      case char.Level >= 1720:
-        // HM
-        this.increamentRoleByClassName(rowIndex, indexToUpdate, char)
-        break;
-      case char.Level >= 1700:
-        // NM
-        this.increamentRoleByClassName(rowIndex + 1, indexToUpdate, char)
-        break;
-      default:
-        break;
-    }
+  rosterAccent(rosterKey: string): string {
+    return this.rosterHeaders.find((roster) => roster.key === rosterKey)?.bannerAccent ?? '#ff7dc5';
   }
 
-  updateMordumRunCount(rowIndex: number, indexToUpdate: number, char: ApiResponse) {
-    switch (true) {
-      case char.Level >= 1700:
-        // HM
-        this.increamentRoleByClassName(rowIndex, indexToUpdate, char)
-        break;
-      default:
-        break;
-    }
+  summaryTotal(rosterKey: string): number {
+    return this.rosterSummaries.find((summary) => summary.key === rosterKey)?.totalGold ?? 0;
   }
 
-  /**
-   * Increament dps or supp for specific raid
-   * 0 - Total
-   * 1 - Kazeros HM
-   * 2 - Kazeros NM
-   * 3 - Act 4 HM
-   * 4 - Act 4 NM
-   * 5 - Mordum HM
-   */
-  increamentRoleByClassName(raidIndex: number, indexToUpdate: number, char: ApiResponse, ignore: boolean = false) {
-    if (this.isMaximumRaidCountReached(char) && !ignore)
+  namesLabel(names: string[]): string {
+    return names.length ? names.join(', ') : 'No eligible characters';
+  }
+
+  private characterKey(characterId: number): string {
+    return String(characterId);
+  }
+
+  private restoreState(): void {
+    if (typeof localStorage === 'undefined') {
       return;
+    }
 
-    if (!ignore)
-      this.characterRaidCount[char.CharacterName] += 1;
+    const rawState = localStorage.getItem(this.storageKey);
+    if (!rawState) {
+      return;
+    }
 
-    if (char.IsSupport) {
-      this.raids[raidIndex].values[indexToUpdate].supp += 1
-      this.raids[raidIndex].values[indexToUpdate].suppNames.push(char.CharacterName)
-      this.raids[raidIndex].values[0].supp += 1;
-      this.raids[raidIndex].values[0].suppNames.push(char.CharacterName)
-    } else {
-      this.raids[raidIndex].values[indexToUpdate].dps += 1
-      this.raids[raidIndex].values[indexToUpdate].dpsNames.push(char.CharacterName)
-      this.raids[raidIndex].values[0].dps += 1;
-      this.raids[raidIndex].values[0].dpsNames.push(char.CharacterName)
+    try {
+      const parsedState = JSON.parse(rawState) as {
+        completionState?: Record<string, Record<string, boolean>>;
+        goldState?: Record<string, number>;
+        bonusGoldState?: Record<string, number>;
+      };
+
+      this.completionState = parsedState.completionState ?? {};
+      this.goldState = parsedState.goldState ?? {};
+      this.bonusGoldState = parsedState.bonusGoldState ?? {};
+    } catch {
+      this.completionState = {};
+      this.goldState = {};
+      this.bonusGoldState = {};
     }
   }
 
-  isMaximumRaidCountReached(char: ApiResponse): boolean {
-    return this.characterRaidCount[char.CharacterName] === 3;
-  }
+  private saveState(): void {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
 
-  initializeCharacterRaidCount(char: ApiResponse) {
-    this.characterRaidCount[char.CharacterName] = 0;
+    localStorage.setItem(
+      this.storageKey,
+      JSON.stringify({
+        completionState: this.completionState,
+        goldState: this.goldState,
+        bonusGoldState: this.bonusGoldState
+      })
+    );
   }
 }
-

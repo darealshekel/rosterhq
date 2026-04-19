@@ -1,36 +1,157 @@
-/* You can add global styles to this file, and also import other style files */
-
 html,
 body {
-    height: 100%;
-    scroll-behavior: smooth;
+  height: 100%;
+  scroll-behavior: smooth;
+}
+
+:root {
+  color-scheme: dark;
+  --font-display: "Manrope", "Segoe UI", sans-serif;
+  --font-body: "Public Sans", "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  --font-rubik: "Rubik", "Segoe UI", sans-serif;
+  --ease-out-emil: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-emil: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 body {
-    margin: 0;
-    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  margin: 0;
+  position: relative;
+  font-family: var(--font-body);
+  color: #ffe4f2;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  background: #050507;
 }
 
-.tooltip {
-    position: relative;
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: -12%;
+  pointer-events: none;
+  z-index: -1;
+  will-change: transform, opacity;
 }
 
-.tooltip .tooltiptext {
-    visibility: hidden;
-    width: 120px;
-    background-color: rgb(70, 68, 68);
-    color: #ECDFC9;
-    text-align: center;
-    border-radius: 6px;
-    padding: 5px 0;
-    top: 32px;
-    /* Position the tooltip */
-    position: absolute;
-    z-index: 500;
-    display: flex;
-    flex-direction: column;
+body::before {
+  background:
+    radial-gradient(42% 56% at 14% 18%, rgba(255, 84, 169, 0.08), transparent 72%),
+    radial-gradient(36% 42% at 82% 12%, rgba(116, 88, 255, 0.05), transparent 74%),
+    radial-gradient(48% 52% at 58% 88%, rgba(255, 84, 169, 0.04), transparent 76%);
+  opacity: 0.85;
+  animation: ambient-drift 26s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite alternate;
 }
 
-.tooltip:hover .tooltiptext {
-    visibility: visible;
+body::after {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 34%),
+    linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.016) 46%, transparent 74%);
+  opacity: 0.65;
+  animation: veil-drift 32s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite alternate;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-wrap: balance;
+  margin-block: 0;
+}
+
+p {
+  max-width: 68ch;
+}
+
+a,
+button {
+  transition:
+    transform 180ms var(--ease-out-emil),
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    opacity 180ms ease,
+    box-shadow 180ms ease;
+}
+
+a:hover,
+button:hover {
+  transform: translateY(-1px);
+}
+
+a:active,
+button:active {
+  transform: scale(0.98);
+}
+
+@keyframes ambient-drift {
+  0% {
+    transform: translate3d(-1.5%, -0.5%, 0) scale(1);
+  }
+
+  100% {
+    transform: translate3d(1.5%, 1.5%, 0) scale(1.035);
+  }
+}
+
+@keyframes veil-drift {
+  0% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.46;
+  }
+
+  100% {
+    transform: translate3d(0.8%, -1.2%, 0);
+    opacity: 0.68;
+  }
+}
+
+@keyframes fade-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes soft-reveal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.985);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html,
+  body {
+    scroll-behavior: auto;
+  }
+
+  body::before,
+  body::after,
+  a,
+  button {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }

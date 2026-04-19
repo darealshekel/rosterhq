@@ -5,6 +5,7 @@ import { HeaderComponent } from './header/header.component';
 import { RosterComponent } from './roster/roster.component';
 import { GroupRoster } from './api-model';
 import { ApiService } from '../services/api.service';
+import { environment } from '../environments/environment';
 
 @Component({
   selector: 'app-root',
@@ -20,6 +21,10 @@ export class AppComponent implements OnInit {
   isLoading = true;
   errorMessage = '';
   rostersData: GroupRoster[] = [];
+  readonly loadingMessage = environment.production
+    ? 'Loading the latest published roster snapshot...'
+    : 'Fetching your live rosters from lostark.bible...';
+  readonly errorTitle = environment.production ? 'Roster snapshot failed' : 'Roster sync failed';
 
   constructor(private api: ApiService) {}
 
@@ -41,7 +46,11 @@ export class AppComponent implements OnInit {
       error: (error) => {
         this.status = 'error';
         this.isLoading = false;
-        this.errorMessage = error instanceof Error ? error.message : 'Failed to load roster data.';
+        this.errorMessage = error instanceof Error
+          ? error.message
+          : environment.production
+            ? 'Failed to load the published roster snapshot.'
+            : 'Failed to load live roster data.';
       }
     });
   }

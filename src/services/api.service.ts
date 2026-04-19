@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin, map, Observable } from 'rxjs';
 import { CharacterEntry, GroupRoster, RawRosterEntry } from '../app/api-model';
+import { environment } from '../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +23,7 @@ export class ApiService {
       title: "DJ's Roster",
       sourceCharacter: 'Bröke',
       sourcePath: '/character/CE/Br%C3%B6ke/roster',
-      bannerImage: '/images/dj-roster-banner-expanded-2.png',
+      bannerImage: 'images/dj-roster-banner-expanded-2.png',
       bannerAccent: '#ff7ac3'
     },
     {
@@ -30,7 +31,7 @@ export class ApiService {
       title: "Hollow's Roster",
       sourceCharacter: 'Ardeö',
       sourcePath: '/character/CE/Arde%C3%B6/roster',
-      bannerImage: '/images/hollow-roster-banner.png',
+      bannerImage: 'images/hollow-roster-banner.png',
       bannerAccent: '#ff6f95'
     },
     {
@@ -46,6 +47,10 @@ export class ApiService {
   constructor(private http: HttpClient) { }
 
   getGroupRosters(): Observable<GroupRoster[]> {
+    if (environment.production) {
+      return this.http.get<GroupRoster[]>('data/rosters.json');
+    }
+
     return forkJoin(
       this.rosterSources.map((source) =>
         this.http.get(`/lostark-bible${source.sourcePath}`, { responseType: 'text' }).pipe(

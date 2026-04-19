@@ -5,6 +5,8 @@
     "ng": "ng",
     "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
+    "build:pages": "ng build --base-href /rosterhq/",
+    "sync:rosters": "node scripts/generate-roster-data.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

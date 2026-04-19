@@ -1,0 +1,623 @@
+[
+  {
+    "key": "shekel",
+    "title": "Shekel's Roster",
+    "sourceCharacter": "ẞcombatscore",
+    "sourcePath": "/character/CE/%E1%BA%9Ecombatscore/roster",
+    "bannerImage": "",
+    "bannerAccent": "#ff5fab",
+    "characters": [
+      {
+        "id": 195074,
+        "name": "ẞcombatscore",
+        "classKey": "soul_eater",
+        "classLabel": "Souleater",
+        "itemLevel": 1744.1666,
+        "combatPower": 4617.15,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776589269,
+        "characterUrl": "https://lostark.bible/character/CE/%E1%BA%9Ecombatscore"
+      },
+      {
+        "id": 175263877,
+        "name": "Astrogem",
+        "classKey": "dragon_knight",
+        "classLabel": "Valkyrie",
+        "itemLevel": 1730,
+        "combatPower": 3361.73,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776587581,
+        "characterUrl": "https://lostark.bible/character/CE/Astrogem"
+      },
+      {
+        "id": 19801511,
+        "name": "Eqe",
+        "classKey": "alchemist",
+        "classLabel": "Alchemist",
+        "itemLevel": 1730,
+        "combatPower": 3102.48,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776591686,
+        "characterUrl": "https://lostark.bible/character/CE/Eqe"
+      },
+      {
+        "id": 33142,
+        "name": "Shnekeler",
+        "classKey": "soul_eater",
+        "classLabel": "Souleater",
+        "itemLevel": 1720.8334,
+        "combatPower": 2891.56,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776588178,
+        "characterUrl": "https://lostark.bible/character/CE/Shnekeler"
+      },
+      {
+        "id": 199491,
+        "name": "Shekelsss",
+        "classKey": "berserker",
+        "classLabel": "Berserker",
+        "itemLevel": 1712,
+        "combatPower": 2342.78,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776589299,
+        "characterUrl": "https://lostark.bible/character/CE/Shekelsss"
+      },
+      {
+        "id": 346481,
+        "name": "Sheshekel",
+        "classKey": "blade",
+        "classLabel": "Deathblade",
+        "itemLevel": 1710,
+        "combatPower": 1857.61,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776590292,
+        "characterUrl": "https://lostark.bible/character/CE/Sheshekel"
+      }
+    ],
+    "allCharacters": [
+      {
+        "id": 195074,
+        "name": "ẞcombatscore",
+        "classKey": "soul_eater",
+        "classLabel": "Souleater",
+        "itemLevel": 1744.1666,
+        "combatPower": 4617.15,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776589269,
+        "characterUrl": "https://lostark.bible/character/CE/%E1%BA%9Ecombatscore"
+      },
+      {
+        "id": 175263877,
+        "name": "Astrogem",
+        "classKey": "dragon_knight",
+        "classLabel": "Valkyrie",
+        "itemLevel": 1730,
+        "combatPower": 3361.73,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776587581,
+        "characterUrl": "https://lostark.bible/character/CE/Astrogem"
+      },
+      {
+        "id": 19801511,
+        "name": "Eqe",
+        "classKey": "alchemist",
+        "classLabel": "Alchemist",
+        "itemLevel": 1730,
+        "combatPower": 3102.48,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776591686,
+        "characterUrl": "https://lostark.bible/character/CE/Eqe"
+      },
+      {
+        "id": 33142,
+        "name": "Shnekeler",
+        "classKey": "soul_eater",
+        "classLabel": "Souleater",
+        "itemLevel": 1720.8334,
+        "combatPower": 2891.56,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776588178,
+        "characterUrl": "https://lostark.bible/character/CE/Shnekeler"
+      },
+      {
+        "id": 199491,
+        "name": "Shekelsss",
+        "classKey": "berserker",
+        "classLabel": "Berserker",
+        "itemLevel": 1712,
+        "combatPower": 2342.78,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776589299,
+        "characterUrl": "https://lostark.bible/character/CE/Shekelsss"
+      },
+      {
+        "id": 346481,
+        "name": "Sheshekel",
+        "classKey": "blade",
+        "classLabel": "Deathblade",
+        "itemLevel": 1710,
+        "combatPower": 1857.61,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776590292,
+        "characterUrl": "https://lostark.bible/character/CE/Sheshekel"
+      }
+    ],
+    "averageItemLevel": 1724.5,
+    "averageCombatPower": 3028.8849999999998,
+    "highestItemLevel": 1744.1666
+  },
+  {
+    "key": "dj",
+    "title": "DJ's Roster",
+    "sourceCharacter": "Bröke",
+    "sourcePath": "/character/CE/Br%C3%B6ke/roster",
+    "bannerImage": "images/dj-roster-banner-expanded-2.png",
+    "bannerAccent": "#ff7ac3",
+    "characters": [
+      {
+        "id": 264683,
+        "name": "Bröke",
+        "classKey": "infighter_male",
+        "classLabel": "Infighter Male",
+        "itemLevel": 1748.3334,
+        "combatPower": 5409.94,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776592017,
+        "characterUrl": "https://lostark.bible/character/CE/Br%C3%B6ke"
+      },
+      {
+        "id": 332811,
+        "name": "Doyakii",
+        "classKey": "infighter",
+        "classLabel": "Infighter",
+        "itemLevel": 1741.6666,
+        "combatPower": 4392.49,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776590200,
+        "characterUrl": "https://lostark.bible/character/CE/Doyakii"
+      },
+      {
+        "id": 247299,
+        "name": "Fivefootbaddie",
+        "classKey": "yinyangshi",
+        "classLabel": "Yinyangshi",
+        "itemLevel": 1740,
+        "combatPower": 3447.22,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776589623,
+        "characterUrl": "https://lostark.bible/character/CE/Fivefootbaddie"
+      },
+      {
+        "id": 95644595,
+        "name": "Brökyn",
+        "classKey": "holyknight_female",
+        "classLabel": "Holyknight Female",
+        "itemLevel": 1733.3334,
+        "combatPower": 3022.65,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776593580,
+        "characterUrl": "https://lostark.bible/character/CE/Br%C3%B6kyn"
+      },
+      {
+        "id": 141802,
+        "name": "Brokei",
+        "classKey": "infighter_male",
+        "classLabel": "Infighter Male",
+        "itemLevel": 1732.5,
+        "combatPower": 4171.25,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776588908,
+        "characterUrl": "https://lostark.bible/character/CE/Brokei"
+      },
+      {
+        "id": 362269,
+        "name": "Brokër",
+        "classKey": "infighter_male",
+        "classLabel": "Infighter Male",
+        "itemLevel": 1731.6666,
+        "combatPower": 4036.54,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776590399,
+        "characterUrl": "https://lostark.bible/character/CE/Brok%C3%ABr"
+      }
+    ],
+    "allCharacters": [
+      {
+        "id": 264683,
+        "name": "Bröke",
+        "classKey": "infighter_male",
+        "classLabel": "Infighter Male",
+        "itemLevel": 1748.3334,
+        "combatPower": 5409.94,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776592017,
+        "characterUrl": "https://lostark.bible/character/CE/Br%C3%B6ke"
+      },
+      {
+        "id": 332811,
+        "name": "Doyakii",
+        "classKey": "infighter",
+        "classLabel": "Infighter",
+        "itemLevel": 1741.6666,
+        "combatPower": 4392.49,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776590200,
+        "characterUrl": "https://lostark.bible/character/CE/Doyakii"
+      },
+      {
+        "id": 247299,
+        "name": "Fivefootbaddie",
+        "classKey": "yinyangshi",
+        "classLabel": "Yinyangshi",
+        "itemLevel": 1740,
+        "combatPower": 3447.22,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776589623,
+        "characterUrl": "https://lostark.bible/character/CE/Fivefootbaddie"
+      },
+      {
+        "id": 95644595,
+        "name": "Brökyn",
+        "classKey": "holyknight_female",
+        "classLabel": "Holyknight Female",
+        "itemLevel": 1733.3334,
+        "combatPower": 3022.65,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776593580,
+        "characterUrl": "https://lostark.bible/character/CE/Br%C3%B6kyn"
+      },
+      {
+        "id": 141802,
+        "name": "Brokei",
+        "classKey": "infighter_male",
+        "classLabel": "Infighter Male",
+        "itemLevel": 1732.5,
+        "combatPower": 4171.25,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776588908,
+        "characterUrl": "https://lostark.bible/character/CE/Brokei"
+      },
+      {
+        "id": 362269,
+        "name": "Brokër",
+        "classKey": "infighter_male",
+        "classLabel": "Infighter Male",
+        "itemLevel": 1731.6666,
+        "combatPower": 4036.54,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776590399,
+        "characterUrl": "https://lostark.bible/character/CE/Brok%C3%ABr"
+      }
+    ],
+    "averageItemLevel": 1737.9166666666667,
+    "averageCombatPower": 4080.015,
+    "highestItemLevel": 1748.3334
+  },
+  {
+    "key": "hollow",
+    "title": "Hollow's Roster",
+    "sourceCharacter": "Ardeö",
+    "sourcePath": "/character/CE/Arde%C3%B6/roster",
+    "bannerImage": "images/hollow-roster-banner.png",
+    "bannerAccent": "#ff6f95",
+    "characters": [
+      {
+        "id": 345777,
+        "name": "Ardeö",
+        "classKey": "holyknight",
+        "classLabel": "Holyknight",
+        "itemLevel": 1756.6666,
+        "combatPower": 4518.82,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776590288,
+        "characterUrl": "https://lostark.bible/character/CE/Arde%C3%B6"
+      },
+      {
+        "id": 81771,
+        "name": "Zhepher",
+        "classKey": "holyknight",
+        "classLabel": "Holyknight",
+        "itemLevel": 1740,
+        "combatPower": 3771.84,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776588505,
+        "characterUrl": "https://lostark.bible/character/CE/Zhepher"
+      },
+      {
+        "id": 9592893,
+        "name": "Cresceñt",
+        "classKey": "holyknight",
+        "classLabel": "Holyknight",
+        "itemLevel": 1740,
+        "combatPower": 3672.17,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776591207,
+        "characterUrl": "https://lostark.bible/character/CE/Cresce%C3%B1t"
+      },
+      {
+        "id": 175842447,
+        "name": "Eilli",
+        "classKey": "dragon_knight",
+        "classLabel": "Valkyrie",
+        "itemLevel": 1737.5,
+        "combatPower": 3466.84,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776587637,
+        "characterUrl": "https://lostark.bible/character/CE/Eilli"
+      },
+      {
+        "id": 94517232,
+        "name": "Eulallie",
+        "classKey": "holyknight_female",
+        "classLabel": "Holyknight Female",
+        "itemLevel": 1733.3334,
+        "combatPower": 3409.4,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776593469,
+        "characterUrl": "https://lostark.bible/character/CE/Eulallie"
+      },
+      {
+        "id": 95472843,
+        "name": "Euclaiir",
+        "classKey": "holyknight_female",
+        "classLabel": "Holyknight Female",
+        "itemLevel": 1730,
+        "combatPower": 3213.09,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776593570,
+        "characterUrl": "https://lostark.bible/character/CE/Euclaiir"
+      }
+    ],
+    "allCharacters": [
+      {
+        "id": 345777,
+        "name": "Ardeö",
+        "classKey": "holyknight",
+        "classLabel": "Holyknight",
+        "itemLevel": 1756.6666,
+        "combatPower": 4518.82,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776590288,
+        "characterUrl": "https://lostark.bible/character/CE/Arde%C3%B6"
+      },
+      {
+        "id": 81771,
+        "name": "Zhepher",
+        "classKey": "holyknight",
+        "classLabel": "Holyknight",
+        "itemLevel": 1740,
+        "combatPower": 3771.84,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776588505,
+        "characterUrl": "https://lostark.bible/character/CE/Zhepher"
+      },
+      {
+        "id": 9592893,
+        "name": "Cresceñt",
+        "classKey": "holyknight",
+        "classLabel": "Holyknight",
+        "itemLevel": 1740,
+        "combatPower": 3672.17,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776591207,
+        "characterUrl": "https://lostark.bible/character/CE/Cresce%C3%B1t"
+      },
+      {
+        "id": 175842447,
+        "name": "Eilli",
+        "classKey": "dragon_knight",
+        "classLabel": "Valkyrie",
+        "itemLevel": 1737.5,
+        "combatPower": 3466.84,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776587637,
+        "characterUrl": "https://lostark.bible/character/CE/Eilli"
+      },
+      {
+        "id": 94517232,
+        "name": "Eulallie",
+        "classKey": "holyknight_female",
+        "classLabel": "Holyknight Female",
+        "itemLevel": 1733.3334,
+        "combatPower": 3409.4,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776593469,
+        "characterUrl": "https://lostark.bible/character/CE/Eulallie"
+      },
+      {
+        "id": 95472843,
+        "name": "Euclaiir",
+        "classKey": "holyknight_female",
+        "classLabel": "Holyknight Female",
+        "itemLevel": 1730,
+        "combatPower": 3213.09,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776593570,
+        "characterUrl": "https://lostark.bible/character/CE/Euclaiir"
+      },
+      {
+        "id": 19916962,
+        "name": "Ardënt",
+        "classKey": "devil_hunter",
+        "classLabel": "Devil Hunter",
+        "itemLevel": 1718.3334,
+        "combatPower": 2056.98,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776591701,
+        "characterUrl": "https://lostark.bible/character/CE/Ard%C3%ABnt"
+      },
+      {
+        "id": 314126,
+        "name": "Choccopie",
+        "classKey": "soul_eater",
+        "classLabel": "Souleater",
+        "itemLevel": 1709.1666,
+        "combatPower": 1736.59,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776590074,
+        "characterUrl": "https://lostark.bible/character/CE/Choccopie"
+      },
+      {
+        "id": 155451174,
+        "name": "Eurianet",
+        "classKey": "holyknight_female",
+        "classLabel": "Holyknight Female",
+        "itemLevel": 1640,
+        "combatPower": 914.99,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776587401,
+        "characterUrl": "https://lostark.bible/character/CE/Eurianet"
+      }
+    ],
+    "averageItemLevel": 1739.5833333333333,
+    "averageCombatPower": 3675.36,
+    "highestItemLevel": 1756.6666
+  },
+  {
+    "key": "basri",
+    "title": "Basri's Roster",
+    "sourceCharacter": "Scrabb",
+    "sourcePath": "/character/CE/Scrabb/roster",
+    "bannerImage": "",
+    "bannerAccent": "#f76dc8",
+    "characters": [
+      {
+        "id": 215635,
+        "name": "Scrabb",
+        "classKey": "infighter",
+        "classLabel": "Infighter",
+        "itemLevel": 1744.1666,
+        "combatPower": 5145.63,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776589407,
+        "characterUrl": "https://lostark.bible/character/CE/Scrabb"
+      },
+      {
+        "id": 53660835,
+        "name": "Paladeeznutt",
+        "classKey": "holyknight",
+        "classLabel": "Holyknight",
+        "itemLevel": 1735,
+        "combatPower": 3795.99,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776592737,
+        "characterUrl": "https://lostark.bible/character/CE/Paladeeznutt"
+      },
+      {
+        "id": 388055,
+        "name": "Naargos",
+        "classKey": "infighter",
+        "classLabel": "Infighter",
+        "itemLevel": 1733.3334,
+        "combatPower": 4233.65,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776590576,
+        "characterUrl": "https://lostark.bible/character/CE/Naargos"
+      },
+      {
+        "id": 61544,
+        "name": "Needbreak",
+        "classKey": "infighter_male",
+        "classLabel": "Infighter Male",
+        "itemLevel": 1732.5,
+        "combatPower": 4052.14,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776588368,
+        "characterUrl": "https://lostark.bible/character/CE/Needbreak"
+      },
+      {
+        "id": 83255,
+        "name": "Skyybri",
+        "classKey": "infighter",
+        "classLabel": "Infighter",
+        "itemLevel": 1731.6666,
+        "combatPower": 3608.98,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776588515,
+        "characterUrl": "https://lostark.bible/character/CE/Skyybri"
+      },
+      {
+        "id": 95559943,
+        "name": "Sydneysweeny",
+        "classKey": "holyknight_female",
+        "classLabel": "Holyknight Female",
+        "itemLevel": 1730.8334,
+        "combatPower": 2995.73,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776593576,
+        "characterUrl": "https://lostark.bible/character/CE/Sydneysweeny"
+      }
+    ],
+    "allCharacters": [
+      {
+        "id": 215635,
+        "name": "Scrabb",
+        "classKey": "infighter",
+        "classLabel": "Infighter",
+        "itemLevel": 1744.1666,
+        "combatPower": 5145.63,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776589407,
+        "characterUrl": "https://lostark.bible/character/CE/Scrabb"
+      },
+      {
+        "id": 53660835,
+        "name": "Paladeeznutt",
+        "classKey": "holyknight",
+        "classLabel": "Holyknight",
+        "itemLevel": 1735,
+        "combatPower": 3795.99,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776592737,
+        "characterUrl": "https://lostark.bible/character/CE/Paladeeznutt"
+      },
+      {
+        "id": 388055,
+        "name": "Naargos",
+        "classKey": "infighter",
+        "classLabel": "Infighter",
+        "itemLevel": 1733.3334,
+        "combatPower": 4233.65,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776590576,
+        "characterUrl": "https://lostark.bible/character/CE/Naargos"
+      },
+      {
+        "id": 61544,
+        "name": "Needbreak",
+        "classKey": "infighter_male",
+        "classLabel": "Infighter Male",
+        "itemLevel": 1732.5,
+        "combatPower": 4052.14,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776588368,
+        "characterUrl": "https://lostark.bible/character/CE/Needbreak"
+      },
+      {
+        "id": 83255,
+        "name": "Skyybri",
+        "classKey": "infighter",
+        "classLabel": "Infighter",
+        "itemLevel": 1731.6666,
+        "combatPower": 3608.98,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776588515,
+        "characterUrl": "https://lostark.bible/character/CE/Skyybri"
+      },
+      {
+        "id": 95559943,
+        "name": "Sydneysweeny",
+        "classKey": "holyknight_female",
+        "classLabel": "Holyknight Female",
+        "itemLevel": 1730.8334,
+        "combatPower": 2995.73,
+        "combatPowerIsEstimate": true,
+        "lastUpdate": 1776593576,
+        "characterUrl": "https://lostark.bible/character/CE/Sydneysweeny"
+      }
+    ],
+    "averageItemLevel": 1734.5833333333333,
+    "averageCombatPower": 3972.02,
+    "highestItemLevel": 1744.1666
+  }
+]

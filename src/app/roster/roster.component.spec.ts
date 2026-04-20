@@ -1,15 +1,70 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { BehaviorSubject, of } from 'rxjs';
 
 import { RosterComponent } from './roster.component';
 import { GroupRoster } from '../api-model';
+import { PlannerSharedState, PlannerStateService } from '../../services/planner-state.service';
+
+class MockPlannerStateService {
+  private readonly subject = new BehaviorSubject<PlannerSharedState>({
+    completionState: {},
+    chestState: {},
+    version: 0
+  });
+
+  readonly state$ = this.subject.asObservable();
+
+  start(): void {}
+
+  setCompletion(key: string, value: boolean) {
+    const snapshot = this.subject.value;
+    const nextState: PlannerSharedState = {
+      ...snapshot,
+      completionState: {
+        ...snapshot.completionState,
+        [key]: value
+      },
+      version: (snapshot.version ?? 0) + 1
+    };
+    this.subject.next(nextState);
+    return of(nextState);
+  }
+
+  setChest(key: string, value: boolean) {
+    const snapshot = this.subject.value;
+    const nextState: PlannerSharedState = {
+      ...snapshot,
+      chestState: {
+        ...snapshot.chestState,
+        [key]: value
+      },
+      version: (snapshot.version ?? 0) + 1
+    };
+    this.subject.next(nextState);
+    return of(nextState);
+  }
+
+  pushState(state: PlannerSharedState): void {
+    this.subject.next(state);
+  }
+}
 
 describe('RosterComponent', () => {
   let component: RosterComponent;
   let fixture: ComponentFixture<RosterComponent>;
+  let plannerState: MockPlannerStateService;
 
   beforeEach(async () => {
+    plannerState = new MockPlannerStateService();
+
     await TestBed.configureTestingModule({
-      imports: [RosterComponent]
+      imports: [RosterComponent],
+      providers: [
+        {
+          provide: PlannerStateService,
+          useValue: plannerState
+        }
+      ]
     })
     .compileComponents();
 
@@ -31,6 +86,48 @@ describe('RosterComponent', () => {
     }).not.toThrow();
 
     storageGetter.and.callThrough();
+  });
+
+  it('rebuilds planner state when shared updates arrive', () => {
+    const rosters: GroupRoster[] = [
+      {
+        key: 'test',
+        title: 'Shared Update Test',
+        sourcePath: '/character/test',
+        sourceCharacter: 'Tester',
+        bannerImage: '',
+        bannerAccent: '#ff5fab',
+        averageItemLevel: 0,
+        averageCombatPower: 0,
+        highestItemLevel: 0,
+        allCharacters: [],
+        characters: [
+          {
+            id: 777,
+            name: 'Bröke',
+            classKey: 'soul_eater',
+            classLabel: 'Souleater',
+            itemLevel: 1745,
+            combatPower: 5000,
+            combatPowerIsEstimate: false,
+            lastUpdate: 1,
+            characterUrl: 'https://example.com/broke'
+          }
+        ]
+      }
+    ];
+
+    component.rosters = rosters;
+    plannerState.pushState({
+      completionState: {
+        '777:serca-nightmare': false
+      },
+      chestState: {},
+      version: 1
+    });
+
+    expect(component.plannerRosters[0].plannerRows[0].raidsByFamily['serca']?.completed).toBeFalse();
+    expect(component.plannerRosters[0].plannerTotalGold).toBe(94000);
   });
 
   it('still builds planner rosters when string normalization is unavailable', () => {

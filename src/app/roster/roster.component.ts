@@ -1,6 +1,8 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { CharacterEntry, GroupRoster } from '../api-model';
+import { Subscription } from 'rxjs';
+import { PlannerSharedState, PlannerStateService } from '../../services/planner-state.service';
 
 interface RaidTierDefinition {
   key: string;
@@ -54,10 +56,11 @@ interface PlannerRosterView extends GroupRoster {
   templateUrl: './roster.component.html',
   styleUrl: './roster.component.css'
 })
-export class RosterComponent {
-  private readonly storageKey = 'roster-hq-inline-gold-planner-v1';
-  private readonly completionState: Record<string, boolean> = {};
-  private readonly chestState: Record<string, boolean> = {};
+export class RosterComponent implements OnInit, OnDestroy {
+  private sourceRosters: GroupRoster[] = [];
+  private completionState: Record<string, boolean> = {};
+  private chestState: Record<string, boolean> = {};
+  private plannerStateSubscription?: Subscription;
   private readonly sercaNightmareCharacters = new Set(['broke', 'scrabb', 'ardeo', 'sscombatscore', 'combatscore']);
 
   readonly raidFamilies: RaidFamilyDefinition[] = [
@@ -92,15 +95,21 @@ export class RosterComponent {
 
   @Input()
   set rosters(value: GroupRoster[]) {
-    try {
-      this.plannerRosters = value.map((roster) => this.buildPlannerRoster(roster));
-    } catch {
-      this.plannerRosters = value.map((roster) => this.buildFallbackPlannerRoster(roster));
-    }
+    this.sourceRosters = value;
+    this.rebuildPlannerRosters();
   }
 
-  constructor() {
-    this.restoreState();
+  constructor(private plannerStateService: PlannerStateService) {}
+
+  ngOnInit(): void {
+    this.plannerStateSubscription = this.plannerStateService.state$.subscribe((state) => {
+      this.applySharedState(state);
+    });
+    this.plannerStateService.start();
+  }
+
+  ngOnDestroy(): void {
+    this.plannerStateSubscription?.unsubscribe();
   }
 
   formatUpdated(timestampSeconds: number): string {
@@ -125,18 +134,22 @@ export class RosterComponent {
     const plannerKey = this.characterRaidKey(characterId, raidKey);
     this.completionState[plannerKey] = completed;
     if (!this.applyRaidToggle(characterId, raidKey, completed)) {
-      this.plannerRosters = this.plannerRosters.map((roster) => this.buildPlannerRoster(roster));
+      this.rebuildPlannerRosters();
     }
-    this.saveState();
+    this.plannerStateService.setCompletion(plannerKey, completed).subscribe((state) => {
+      this.applySharedState(state);
+    });
   }
 
   onChestToggle(characterId: number, raidKey: string, buysChest: boolean): void {
     const plannerKey = this.characterRaidKey(characterId, raidKey);
     this.chestState[plannerKey] = buysChest;
     if (!this.applyChestToggle(characterId, raidKey, buysChest)) {
-      this.plannerRosters = this.plannerRosters.map((roster) => this.buildPlannerRoster(roster));
+      this.rebuildPlannerRosters();
     }
-    this.saveState();
+    this.plannerStateService.setChest(plannerKey, buysChest).subscribe((state) => {
+      this.applySharedState(state);
+    });
   }
 
   trackRoster(_index: number, roster: PlannerRosterView): string {
@@ -332,6 +345,28 @@ export class RosterComponent {
     return `${characterId}:${raidKey}`;
   }
 
+  private applySharedState(state: PlannerSharedState): void {
+    const nextCompletionState = { ...(state.completionState ?? {}) };
+    const nextChestState = { ...(state.chestState ?? {}) };
+    const completionChanged = !this.sameBooleanRecord(this.completionState, nextCompletionState);
+    const chestChanged = !this.sameBooleanRecord(this.chestState, nextChestState);
+
+    this.completionState = nextCompletionState;
+    this.chestState = nextChestState;
+
+    if ((completionChanged || chestChanged) && this.sourceRosters.length > 0) {
+      this.rebuildPlannerRosters();
+    }
+  }
+
+  private rebuildPlannerRosters(): void {
+    try {
+      this.plannerRosters = this.sourceRosters.map((roster) => this.buildPlannerRoster(roster));
+    } catch {
+      this.plannerRosters = this.sourceRosters.map((roster) => this.buildFallbackPlannerRoster(roster));
+    }
+  }
+
   private applyRaidToggle(characterId: number, raidKey: string, completed: boolean): boolean {
     for (const roster of this.plannerRosters) {
       const row = roster.plannerRows.find((character) => character.id === characterId);
@@ -387,62 +422,17 @@ export class RosterComponent {
     return false;
   }
 
-  private restoreState(): void {
-    const storage = this.getStorage();
-    if (!storage) {
-      return;
+  private sameBooleanRecord(
+    left: Record<string, boolean>,
+    right: Record<string, boolean>
+  ): boolean {
+    const leftKeys = Object.keys(left);
+    const rightKeys = Object.keys(right);
+
+    if (leftKeys.length !== rightKeys.length) {
+      return false;
     }
 
-    try {
-      const rawState = storage.getItem(this.storageKey);
-      if (!rawState) {
-        return;
-      }
-
-      const parsedState = JSON.parse(rawState) as
-        | Record<string, boolean>
-        | { completionState?: Record<string, boolean>; chestState?: Record<string, boolean> };
-
-      if ('completionState' in parsedState || 'chestState' in parsedState) {
-        Object.assign(this.completionState, parsedState.completionState ?? {});
-        Object.assign(this.chestState, parsedState.chestState ?? {});
-        return;
-      }
-
-      Object.assign(this.completionState, parsedState);
-    } catch {
-      // Ignore invalid local storage payloads.
-    }
-  }
-
-  private saveState(): void {
-    const storage = this.getStorage();
-    if (!storage) {
-      return;
-    }
-
-    try {
-      storage.setItem(
-        this.storageKey,
-        JSON.stringify({
-          completionState: this.completionState,
-          chestState: this.chestState
-        })
-      );
-    } catch {
-      // Ignore storage write failures in restricted browsing contexts.
-    }
-  }
-
-  private getStorage(): Storage | null {
-    try {
-      if (typeof window === 'undefined') {
-        return null;
-      }
-
-      return window.localStorage;
-    } catch {
-      return null;
-    }
+    return leftKeys.every((key) => left[key] === right[key]);
   }
 }

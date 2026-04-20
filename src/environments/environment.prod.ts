@@ -1,3 +1,4 @@
 export const environment = {
-    production: true
+    production: true,
+    sharedPlannerStateApi: 'https://rosterhq-state.shekelfusion-mult08642.workers.dev'
 }

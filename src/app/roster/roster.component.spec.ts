@@ -111,7 +111,42 @@ describe('RosterComponent', () => {
     const plannerRow = component.plannerRosters[0].plannerRows[0];
     expect(plannerRow.raidsByFamily['serca']?.completed).toBeTrue();
     expect(plannerRow.raidsByFamily['serca']?.raidKey).toBe('serca-nightmare');
-    expect(component.plannerRosters[0].plannerTotalGold).toBe(54000);
+    expect(plannerRow.totalGold).toBe(94000);
+    expect(component.plannerRosters[0].plannerTotalGold).toBe(94000);
+  });
+
+  it('counts checked raids toward character total gold before anything is completed', () => {
+    component.rosters = [
+      {
+        key: 'shekel',
+        title: "Shekel's Roster",
+        sourcePath: '/character/test',
+        sourceCharacter: 'Tester',
+        bannerImage: '',
+        bannerAccent: '#ff5fab',
+        averageItemLevel: 0,
+        averageCombatPower: 0,
+        highestItemLevel: 0,
+        allCharacters: [],
+        characters: [
+          {
+            id: 777,
+            name: 'Bröke',
+            classKey: 'soul_eater',
+            classLabel: 'Souleater',
+            itemLevel: 1745,
+            combatPower: 5000,
+            combatPowerIsEstimate: false,
+            lastUpdate: 1,
+            characterUrl: 'https://example.com/broke'
+          }
+        ]
+      }
+    ];
+
+    const plannerRow = component.plannerRosters[0].plannerRows[0];
+    expect(plannerRow.totalGold).toBe(148000);
+    expect(component.plannerRosters[0].plannerTotalGold).toBe(148000);
   });
 
   it('renders raids as checked until they are completed for the week', () => {

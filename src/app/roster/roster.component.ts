@@ -449,11 +449,11 @@ export class RosterComponent implements OnInit, OnDestroy {
   }
 
   private getRaidNetGold(raid: CharacterPlannerRaid | undefined): number {
-    if (!raid?.completed) {
+    if (!raid || !this.isRaidAvailable(raid)) {
       return 0;
     }
 
-    return raid.gold - (raid.buysChest ? raid.chestCost : 0);
+    return raid.gold;
   }
 
   private characterFamilyKey(characterId: number, familyKey: string): string {

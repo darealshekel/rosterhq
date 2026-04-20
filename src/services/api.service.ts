@@ -3,46 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { forkJoin, map, Observable } from 'rxjs';
 import { CharacterEntry, GroupRoster, RawRosterEntry } from '../app/api-model';
 import { environment } from '../environments/environment';
+import { formatClassLabel, ROSTER_OWNER_DEFINITIONS } from '../shared/rosterhq-core.js';
 
 @Injectable({
   providedIn: 'root'
 })
 
 export class ApiService {
-  private readonly rosterSources = [
-    {
-      key: 'shekel',
-      title: "Shekel's Roster",
-      sourceCharacter: 'ẞcombatscore',
-      sourcePath: '/character/CE/%E1%BA%9Ecombatscore/roster',
-      bannerImage: '',
-      bannerAccent: '#ff5fab'
-    },
-    {
-      key: 'dj',
-      title: "DJ's Roster",
-      sourceCharacter: 'Bröke',
-      sourcePath: '/character/CE/Br%C3%B6ke/roster',
-      bannerImage: 'images/dj-roster-banner-expanded-2.png',
-      bannerAccent: '#ff7ac3'
-    },
-    {
-      key: 'hollow',
-      title: "Hollow's Roster",
-      sourceCharacter: 'Ardeö',
-      sourcePath: '/character/CE/Arde%C3%B6/roster',
-      bannerImage: 'images/hollow-roster-banner.png',
-      bannerAccent: '#ff6f95'
-    },
-    {
-      key: 'basri',
-      title: "Basri's Roster",
-      sourceCharacter: 'Scrabb',
-      sourcePath: '/character/CE/Scrabb/roster',
-      bannerImage: '',
-      bannerAccent: '#f76dc8'
-    }
-  ] as const;
+  private readonly rosterSources = ROSTER_OWNER_DEFINITIONS;
 
   constructor(private http: HttpClient) { }
 
@@ -155,37 +123,12 @@ export class ApiService {
       id: entry.id,
       name: entry.name,
       classKey: entry.class,
-      classLabel: this.formatClassLabel(entry.class),
+      classLabel: formatClassLabel(entry.class),
       itemLevel: Number(entry.ilvl),
       combatPower: Number(entry.combatPower?.score ?? 0),
       combatPowerIsEstimate: entry.combatPowerIsEstimate,
       lastUpdate: Number(entry.lastUpdate),
       characterUrl: `https://lostark.bible/character/CE/${encodeURIComponent(entry.name)}`
     };
-  }
-
-  private formatClassLabel(classKey: string): string {
-    const knownLabels: Record<string, string> = {
-      soul_eater: 'Souleater',
-      dragon_knight: 'Valkyrie',
-      blade: 'Deathblade',
-      alchemist: 'Alchemist',
-      berserker: 'Berserker',
-      breaker: 'Breaker',
-      bard: 'Bard',
-      artist: 'Artist',
-      holy_knight: 'Paladin',
-      paladin: 'Paladin'
-    };
-
-    if (knownLabels[classKey]) {
-      return knownLabels[classKey];
-    }
-
-    return classKey
-      .split(/[_-]/g)
-      .filter(Boolean)
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(' ');
   }
 }

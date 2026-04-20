@@ -1,0 +1,12 @@
+name = "rosterhq-state"
+main = "scripts/rosterhq-state-worker.js"
+compatibility_date = "2026-04-20"
+
+[triggers]
+crons = ["* * * * *"]
+
+[[d1_databases]]
+binding = "ROSTERHQ_DB"
+database_name = "rosterhq-state"
+database_id = "5a58194e-1c96-445c-b040-f6fbca0f7469"
+preview_database_id = "5a58194e-1c96-445c-b040-f6fbca0f7469"

@@ -1,7 +1,7 @@
 export const environment = {
-    production: false,
-    sharedPlannerStateApi: 'https://rosterhq-state.shekelfusion-mult08642.workers.dev'
-}
+  production: false,
+  rosterSyncApi: 'https://rosterhq-state.shekelfusion-mult08642.workers.dev'
+};
 
 // interface IConfig {
 //     api: {

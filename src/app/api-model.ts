@@ -63,3 +63,44 @@ export interface RosterGoldSummary {
   completedRaids: number;
   availableRaids: number;
 }
+
+export type RaidDifficulty = 'NM' | 'HM' | 'NIGHTMARE';
+
+export interface ResetContext {
+  now: string;
+  timeZone: string;
+  currentWeeklyStartAt: string;
+  nextWeeklyResetAt: string;
+  weeklyReminderAt: string;
+  currentWeekId: string;
+}
+
+export interface WeeklyRaidCompletionRecord {
+  id?: number;
+  weekId: string;
+  rosterKey: string;
+  characterId: number;
+  characterName: string;
+  familyKey: string;
+  raidKey: string;
+  difficulty: RaidDifficulty;
+  boughtIn: boolean;
+  completedAt: string;
+  completedSource: 'website' | 'discord';
+}
+
+export interface LifeEnergyStatusRecord {
+  rosterKey: string;
+  current_life_energy: number;
+  life_energy_last_updated_at: string;
+  calculated_full_at: string | null;
+  reminder_sent_at: string | null;
+}
+
+export interface RosterSyncState {
+  reset: ResetContext;
+  raidCompletions: WeeklyRaidCompletionRecord[];
+  lifeEnergy: LifeEnergyStatusRecord[];
+  updatedAt?: string;
+  version?: number;
+}

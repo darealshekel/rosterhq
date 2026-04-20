@@ -31,6 +31,7 @@ yarn-error.log
 # Miscellaneous
 /.angular/cache
 .sass-cache/
+.wrangler/
 /connect.lock
 /coverage
 /libpeerconnection.log
@@ -42,5 +43,7 @@ testem.log
 Thumbs.db
 
 src/app-config.ts
+.dev.vars
+.roster_sync_token.local
 .playwright-cli/
 devserver*.log

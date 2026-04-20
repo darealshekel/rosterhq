@@ -7,6 +7,10 @@
     "build": "ng build",
     "build:pages": "ng build --base-href /rosterhq/",
     "sync:rosters": "node scripts/generate-roster-data.mjs",
+    "sync:state": "node scripts/push-rosters-to-worker.mjs",
+    "discord:register": "node scripts/register-discord-commands.mjs",
+    "worker:dev": "wrangler dev",
+    "worker:deploy": "wrangler deploy",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
@@ -40,6 +44,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.7.2"
+    "typescript": "~5.7.2",
+    "wrangler": "^4.83.0"
   }
 }

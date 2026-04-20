@@ -1,28 +1,47 @@
 import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
-import { CharacterEntry, GroupRoster } from '../api-model';
 import { Subscription } from 'rxjs';
-import { PlannerSharedState, PlannerStateService } from '../../services/planner-state.service';
-
-interface RaidTierDefinition {
-  key: string;
-  difficulty: 'NM' | 'HM' | 'NIGHTMARE';
-  itemLevel: number;
-  gold: number;
-  chestCost?: number;
-}
+import {
+  CharacterEntry,
+  GroupRoster,
+  LifeEnergyStatusRecord,
+  RaidDifficulty,
+  RosterSyncState,
+  WeeklyRaidCompletionRecord
+} from '../api-model';
+import { RosterStateService } from '../../services/roster-state.service';
+import {
+  clampLifeEnergy,
+  formatLifeEnergyRemaining,
+  getDifficultyLabel,
+  getRaidTierByKey,
+  projectLifeEnergyStatus,
+  RAID_FAMILY_DEFINITIONS,
+  resolveEligibleRaidTier
+} from '../../shared/rosterhq-core.js';
 
 interface RaidFamilyDefinition {
   key: string;
+  commandName: string;
   title: string;
-  tiers: RaidTierDefinition[];
+  sortOrder: number;
+  tiers: Array<{
+    key: string;
+    familyKey: string;
+    title: string;
+    difficulty: RaidDifficulty;
+    itemLevel: number;
+    gold: number;
+    chestCost: number;
+    sortOrder: number;
+  }>;
 }
 
 interface CharacterPlannerRaid {
   familyKey: string;
   raidKey: string;
   title: string;
-  difficulty: 'NM' | 'HM' | 'NIGHTMARE';
+  difficulty: RaidDifficulty;
   itemLevel: number;
   gold: number;
   chestCost: number;
@@ -32,6 +51,7 @@ interface CharacterPlannerRaid {
 
 interface CharacterPlannerRow {
   id: number;
+  rosterKey: string;
   name: string;
   classKey: string;
   classLabel: string;
@@ -50,6 +70,12 @@ interface PlannerRosterView extends GroupRoster {
   plannerCompletedCount: number;
 }
 
+interface LifeEnergyUiState {
+  input: string;
+  status: 'idle' | 'saving' | 'saved' | 'error';
+  message: string;
+}
+
 @Component({
   selector: 'app-roster',
   imports: [NgFor, NgIf, DecimalPipe],
@@ -58,58 +84,57 @@ interface PlannerRosterView extends GroupRoster {
 })
 export class RosterComponent implements OnInit, OnDestroy {
   private sourceRosters: GroupRoster[] = [];
-  private completionState: Record<string, boolean> = {};
-  private chestState: Record<string, boolean> = {};
+  private completionIndex = new Map<string, WeeklyRaidCompletionRecord>();
+  private lifeEnergyIndex = new Map<string, LifeEnergyStatusRecord>();
   private plannerStateSubscription?: Subscription;
-  private readonly sercaNightmareCharacters = new Set(['broke', 'scrabb', 'ardeo', 'sscombatscore', 'combatscore']);
+  private lifeEnergyIntervalId: number | null = null;
+  private readonly lifeEnergySaveTimers = new Map<string, number>();
 
-  readonly raidFamilies: RaidFamilyDefinition[] = [
-    {
-      key: 'act-4',
-      title: 'Act 4',
-      tiers: [
-        { key: 'act-4-nm', difficulty: 'NM', itemLevel: 1700, gold: 33000, chestCost: 10560 },
-        { key: 'act-4-hm', difficulty: 'HM', itemLevel: 1720, gold: 42000, chestCost: 13440 }
-      ]
-    },
-    {
-      key: 'final-day',
-      title: 'Final Day',
-      tiers: [
-        { key: 'final-day-nm', difficulty: 'NM', itemLevel: 1710, gold: 40000, chestCost: 12800 },
-        { key: 'final-day-hm', difficulty: 'HM', itemLevel: 1730, gold: 52000, chestCost: 16640 }
-      ]
-    },
-    {
-      key: 'serca',
-      title: 'Serca',
-      tiers: [
-        { key: 'serca-nm', difficulty: 'NM', itemLevel: 1710, gold: 35000, chestCost: 11200 },
-        { key: 'serca-hm', difficulty: 'HM', itemLevel: 1730, gold: 44000, chestCost: 14080 },
-        { key: 'serca-nightmare', difficulty: 'NIGHTMARE', itemLevel: 1740, gold: 54000, chestCost: 17280 }
-      ]
-    }
-  ];
-
+  readonly raidFamilies = RAID_FAMILY_DEFINITIONS as RaidFamilyDefinition[];
   plannerRosters: PlannerRosterView[] = [];
+  lifeEnergyUiState: Record<string, LifeEnergyUiState> = {};
+  syncState: RosterSyncState = {
+    reset: {
+      now: new Date().toISOString(),
+      timeZone: 'Asia/Jerusalem',
+      currentWeeklyStartAt: new Date().toISOString(),
+      nextWeeklyResetAt: new Date().toISOString(),
+      weeklyReminderAt: new Date().toISOString(),
+      currentWeekId: new Date().toISOString()
+    },
+    raidCompletions: [],
+    lifeEnergy: [],
+    version: 0
+  };
 
   @Input()
   set rosters(value: GroupRoster[]) {
     this.sourceRosters = value;
+    this.initializeLifeEnergyInputs();
     this.rebuildPlannerRosters();
   }
 
-  constructor(private plannerStateService: PlannerStateService) {}
+  constructor(private rosterStateService: RosterStateService) {}
 
   ngOnInit(): void {
-    this.plannerStateSubscription = this.plannerStateService.state$.subscribe((state) => {
+    this.plannerStateSubscription = this.rosterStateService.state$.subscribe((state) => {
       this.applySharedState(state);
     });
-    this.plannerStateService.start();
+    this.rosterStateService.start();
+    if (typeof window !== 'undefined') {
+      this.lifeEnergyIntervalId = window.setInterval(() => this.refreshLifeEnergyInputsFromProjection(), 30000);
+    }
   }
 
   ngOnDestroy(): void {
     this.plannerStateSubscription?.unsubscribe();
+    if (this.lifeEnergyIntervalId !== null) {
+      window.clearInterval(this.lifeEnergyIntervalId);
+    }
+
+    for (const timerId of this.lifeEnergySaveTimers.values()) {
+      window.clearTimeout(timerId);
+    }
   }
 
   formatUpdated(timestampSeconds: number): string {
@@ -130,26 +155,43 @@ export class RosterComponent implements OnInit, OnDestroy {
     return `${diffDays}d ago`;
   }
 
-  onRaidToggle(characterId: number, raidKey: string, completed: boolean): void {
-    const plannerKey = this.characterRaidKey(characterId, raidKey);
-    this.completionState[plannerKey] = completed;
-    if (!this.applyRaidToggle(characterId, raidKey, completed)) {
-      this.rebuildPlannerRosters();
-    }
-    this.plannerStateService.setCompletion(plannerKey, completed).subscribe((state) => {
-      this.applySharedState(state);
-    });
+  onRaidToggle(character: CharacterPlannerRow, raid: CharacterPlannerRaid, completed: boolean): void {
+    this.rosterStateService.upsertRaidCompletion({
+      rosterKey: character.rosterKey,
+      characterId: character.id,
+      raidKey: raid.raidKey,
+      boughtIn: completed ? raid.buysChest : false,
+      completed
+    }).subscribe((state) => this.applySharedState(state));
   }
 
-  onChestToggle(characterId: number, raidKey: string, buysChest: boolean): void {
-    const plannerKey = this.characterRaidKey(characterId, raidKey);
-    this.chestState[plannerKey] = buysChest;
-    if (!this.applyChestToggle(characterId, raidKey, buysChest)) {
-      this.rebuildPlannerRosters();
+  onChestToggle(character: CharacterPlannerRow, raid: CharacterPlannerRaid, buysChest: boolean): void {
+    this.rosterStateService.upsertRaidCompletion({
+      rosterKey: character.rosterKey,
+      characterId: character.id,
+      raidKey: raid.raidKey,
+      boughtIn: buysChest,
+      completed: true
+    }).subscribe((state) => this.applySharedState(state));
+  }
+
+  onLifeEnergyInput(rosterKey: string, rawValue: string): void {
+    this.lifeEnergyUiState[rosterKey] = {
+      input: rawValue,
+      status: 'saving',
+      message: 'Syncing reminder state...'
+    };
+
+    const existingTimerId = this.lifeEnergySaveTimers.get(rosterKey);
+    if (existingTimerId !== undefined) {
+      window.clearTimeout(existingTimerId);
     }
-    this.plannerStateService.setChest(plannerKey, buysChest).subscribe((state) => {
-      this.applySharedState(state);
-    });
+
+    const timerId = window.setTimeout(() => {
+      this.persistLifeEnergy(rosterKey);
+      this.lifeEnergySaveTimers.delete(rosterKey);
+    }, 700);
+    this.lifeEnergySaveTimers.set(rosterKey, timerId);
   }
 
   trackRoster(_index: number, roster: PlannerRosterView): string {
@@ -172,8 +214,8 @@ export class RosterComponent implements OnInit, OnDestroy {
     return `url('${bannerImage}')`;
   }
 
-  getDifficultyLabel(difficulty: CharacterPlannerRaid['difficulty'] | RaidTierDefinition['difficulty']): string {
-    return difficulty === 'NIGHTMARE' ? 'NMR' : difficulty;
+  getDifficultyLabel(difficulty: CharacterPlannerRaid['difficulty']): string {
+    return getDifficultyLabel(difficulty);
   }
 
   getClassBadgeLabel(classKey: string, classLabel: string): string {
@@ -219,8 +261,48 @@ export class RosterComponent implements OnInit, OnDestroy {
     return palette[classKey] ?? '#ff8ccc';
   }
 
+  getLifeEnergyPreview(rosterKey: string) {
+    const uiState = this.lifeEnergyUiState[rosterKey];
+    const persisted = this.lifeEnergyIndex.get(rosterKey);
+
+    if (uiState && (uiState.status === 'saving' || uiState.status === 'error' || !persisted)) {
+      return projectLifeEnergyStatus({
+        current_life_energy: clampLifeEnergy(uiState.input),
+        life_energy_last_updated_at: new Date().toISOString(),
+        calculated_full_at: null
+      });
+    }
+
+    return projectLifeEnergyStatus(persisted ?? {});
+  }
+
+  getLifeEnergyTimeRemaining(rosterKey: string): string {
+    return formatLifeEnergyRemaining(this.getLifeEnergyPreview(rosterKey).msUntilFull);
+  }
+
+  getLifeEnergyTimestamp(rosterKey: string): string {
+    const preview = this.getLifeEnergyPreview(rosterKey);
+    if (!preview.fullAt) {
+      return 'Already full';
+    }
+
+    return this.formatLocalTimestamp(preview.fullAt);
+  }
+
+  getLifeEnergyInput(rosterKey: string): string {
+    return this.lifeEnergyUiState[rosterKey]?.input ?? '';
+  }
+
+  getLifeEnergyStatus(rosterKey: string): LifeEnergyUiState['status'] {
+    return this.lifeEnergyUiState[rosterKey]?.status ?? 'idle';
+  }
+
+  getLifeEnergyMessage(rosterKey: string): string {
+    return this.lifeEnergyUiState[rosterKey]?.message ?? 'Saved values power Discord reminders.';
+  }
+
   private buildPlannerRoster(roster: GroupRoster): PlannerRosterView {
-    const plannerRows = roster.characters.map((character) => this.buildPlannerRow(character));
+    const plannerRows = roster.characters.map((character) => this.buildPlannerRow(roster.key, character));
     return {
       ...roster,
       plannerRows,
@@ -232,58 +314,41 @@ export class RosterComponent implements OnInit, OnDestroy {
     };
   }
 
-  private buildFallbackPlannerRoster(roster: GroupRoster): PlannerRosterView {
-    const plannerRows = roster.characters.map((character) => ({
-      id: character.id,
-      name: character.name,
-      classKey: character.classKey,
-      classLabel: character.classLabel,
-      itemLevel: character.itemLevel,
-      combatPower: character.combatPower,
-      combatPowerIsEstimate: character.combatPowerIsEstimate,
-      characterUrl: character.characterUrl,
-      lastUpdate: character.lastUpdate,
-      raidsByFamily: this.raidFamilies.reduce<Record<string, CharacterPlannerRaid | undefined>>((acc, family) => {
+  private buildPlannerRow(rosterKey: string, character: CharacterEntry): CharacterPlannerRow {
+    const raidsByFamily = this.raidFamilies.reduce<Record<string, CharacterPlannerRaid | undefined>>((acc, family) => {
+      const completion = this.completionIndex.get(this.characterFamilyKey(character.id, family.key));
+      const selectedTier = completion ? getRaidTierByKey(completion.raidKey) : undefined;
+      const eligibleTier = resolveEligibleRaidTier(character, family);
+      const tier = selectedTier ?? eligibleTier;
+
+      if (!tier) {
         acc[family.key] = undefined;
         return acc;
-      }, {}),
-      totalGold: 0
-    }));
+      }
 
-    return {
-      ...roster,
-      plannerRows,
-      plannerTotalGold: 0,
-      plannerCompletedCount: 0
-    };
-  }
+      acc[family.key] = {
+        familyKey: family.key,
+        raidKey: tier.key,
+        title: family.title,
+        difficulty: tier.difficulty,
+        itemLevel: tier.itemLevel,
+        gold: tier.gold,
+        chestCost: tier.chestCost,
+        buysChest: completion?.boughtIn ?? false,
+        completed: Boolean(completion)
+      };
 
-  private buildPlannerRow(character: CharacterEntry): CharacterPlannerRow {
-    const raidsByFamily = this.raidFamilies.reduce<Record<string, CharacterPlannerRaid | undefined>>((acc, family) => {
-      const tier = this.resolveTier(character, family);
-      acc[family.key] = tier
-        ? {
-            familyKey: family.key,
-            raidKey: tier.key,
-            title: family.title,
-            difficulty: tier.difficulty,
-            itemLevel: tier.itemLevel,
-            gold: tier.gold,
-            chestCost: tier.chestCost ?? 0,
-            buysChest: this.chestState[this.characterRaidKey(character.id, tier.key)] ?? false,
-            completed: this.completionState[this.characterRaidKey(character.id, tier.key)] ?? true
-          }
-        : undefined;
       return acc;
     }, {});
 
-    const totalGold = Object.values(raidsByFamily).reduce(
+    const totalGold = (Object.values(raidsByFamily) as Array<CharacterPlannerRaid | undefined>).reduce(
       (sum, raid) => sum + this.getRaidNetGold(raid),
       0
     );
 
     return {
       id: character.id,
+      rosterKey,
       name: character.name,
       classKey: character.classKey,
       classLabel: character.classLabel,
@@ -297,40 +362,75 @@ export class RosterComponent implements OnInit, OnDestroy {
     };
   }
 
-  private resolveTier(character: CharacterEntry, family: RaidFamilyDefinition): RaidTierDefinition | undefined {
-    const eligibleTier = family.tiers
-      .slice()
-      .sort((left, right) => right.itemLevel - left.itemLevel)
-      .find((tier) => character.itemLevel >= tier.itemLevel);
-
-    if (!eligibleTier) {
-      return undefined;
-    }
-
-    if (family.key !== 'serca' || eligibleTier.difficulty !== 'NIGHTMARE' || this.canRunSercaNightmare(character.name)) {
-      return eligibleTier;
-    }
-
-    return family.tiers
-      .slice()
-      .sort((left, right) => right.itemLevel - left.itemLevel)
-      .find((tier) => tier.difficulty !== 'NIGHTMARE' && character.itemLevel >= tier.itemLevel);
+  private applySharedState(state: RosterSyncState): void {
+    this.syncState = state;
+    this.completionIndex = new Map(
+      state.raidCompletions.map((completion) => [this.characterFamilyKey(completion.characterId, completion.familyKey), completion])
+    );
+    this.lifeEnergyIndex = new Map(state.lifeEnergy.map((entry) => [entry.rosterKey, entry]));
+    this.refreshLifeEnergyInputsFromProjection();
+    this.rebuildPlannerRosters();
   }
 
-  private canRunSercaNightmare(characterName: string): boolean {
-    let normalizedName = characterName.toLowerCase();
+  private rebuildPlannerRosters(): void {
+    this.plannerRosters = this.sourceRosters.map((roster) => this.buildPlannerRoster(roster));
+  }
 
-    try {
-      normalizedName = normalizedName.normalize('NFKD');
-    } catch {
-      // Some restricted or older browser contexts may not support string normalization.
+  private initializeLifeEnergyInputs(): void {
+    for (const roster of this.sourceRosters) {
+      if (this.lifeEnergyUiState[roster.key]) {
+        continue;
+      }
+
+      const projected = projectLifeEnergyStatus(this.lifeEnergyIndex.get(roster.key) ?? {});
+      this.lifeEnergyUiState[roster.key] = {
+        input: String(projected.currentLifeEnergy),
+        status: 'idle',
+        message: 'Saved values power Discord reminders.'
+      };
     }
+  }
 
-    normalizedName = normalizedName
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/ß/g, 'ss');
+  private refreshLifeEnergyInputsFromProjection(): void {
+    for (const roster of this.sourceRosters) {
+      const currentState = this.lifeEnergyUiState[roster.key];
+      if (!currentState || currentState.status === 'saving') {
+        continue;
+      }
 
-    return this.sercaNightmareCharacters.has(normalizedName);
+      const projected = projectLifeEnergyStatus(this.lifeEnergyIndex.get(roster.key) ?? {});
+      this.lifeEnergyUiState[roster.key] = {
+        input: String(projected.currentLifeEnergy),
+        status: currentState.status,
+        message: currentState.message
+      };
+    }
+  }
+
+  private persistLifeEnergy(rosterKey: string): void {
+    const uiState = this.lifeEnergyUiState[rosterKey];
+    const nextValue = clampLifeEnergy(uiState?.input ?? 0);
+
+    this.rosterStateService.updateLifeEnergy({
+      rosterKey,
+      currentLifeEnergy: nextValue
+    }).subscribe({
+      next: (state) => {
+        this.lifeEnergyUiState[rosterKey] = {
+          input: String(clampLifeEnergy(nextValue)),
+          status: 'saved',
+          message: 'Life energy synced for website and Discord reminders.'
+        };
+        this.applySharedState(state);
+      },
+      error: () => {
+        this.lifeEnergyUiState[rosterKey] = {
+          input: String(nextValue),
+          status: 'error',
+          message: 'Failed to sync life energy. Preview is still local.'
+        };
+      }
+    });
   }
 
   private getRaidNetGold(raid: CharacterPlannerRaid | undefined): number {
@@ -341,98 +441,15 @@ export class RosterComponent implements OnInit, OnDestroy {
     return raid.gold - (raid.buysChest ? raid.chestCost : 0);
   }
 
-  private characterRaidKey(characterId: number, raidKey: string): string {
-    return `${characterId}:${raidKey}`;
+  private characterFamilyKey(characterId: number, familyKey: string): string {
+    return `${characterId}:${familyKey}`;
   }
 
-  private applySharedState(state: PlannerSharedState): void {
-    const nextCompletionState = { ...(state.completionState ?? {}) };
-    const nextChestState = { ...(state.chestState ?? {}) };
-    const completionChanged = !this.sameBooleanRecord(this.completionState, nextCompletionState);
-    const chestChanged = !this.sameBooleanRecord(this.chestState, nextChestState);
-
-    this.completionState = nextCompletionState;
-    this.chestState = nextChestState;
-
-    if ((completionChanged || chestChanged) && this.sourceRosters.length > 0) {
-      this.rebuildPlannerRosters();
-    }
-  }
-
-  private rebuildPlannerRosters(): void {
-    try {
-      this.plannerRosters = this.sourceRosters.map((roster) => this.buildPlannerRoster(roster));
-    } catch {
-      this.plannerRosters = this.sourceRosters.map((roster) => this.buildFallbackPlannerRoster(roster));
-    }
-  }
-
-  private applyRaidToggle(characterId: number, raidKey: string, completed: boolean): boolean {
-    for (const roster of this.plannerRosters) {
-      const row = roster.plannerRows.find((character) => character.id === characterId);
-      if (!row) {
-        continue;
-      }
-
-      const raid = Object.values(row.raidsByFamily).find((candidate) => candidate?.raidKey === raidKey);
-      if (!raid) {
-        return false;
-      }
-
-      if (raid.completed === completed) {
-        return true;
-      }
-
-      const goldDelta = completed ? this.getRaidNetGold({ ...raid, completed: true }) : -this.getRaidNetGold(raid);
-      raid.completed = completed;
-      row.totalGold += goldDelta;
-      roster.plannerTotalGold += goldDelta;
-      roster.plannerCompletedCount += completed ? 1 : -1;
-      return true;
-    }
-
-    return false;
-  }
-
-  private applyChestToggle(characterId: number, raidKey: string, buysChest: boolean): boolean {
-    for (const roster of this.plannerRosters) {
-      const row = roster.plannerRows.find((character) => character.id === characterId);
-      if (!row) {
-        continue;
-      }
-
-      const raid = Object.values(row.raidsByFamily).find((candidate) => candidate?.raidKey === raidKey);
-      if (!raid) {
-        return false;
-      }
-
-      if (!raid.chestCost || raid.buysChest === buysChest) {
-        return true;
-      }
-
-      raid.buysChest = buysChest;
-      if (raid.completed) {
-        const goldDelta = buysChest ? -raid.chestCost : raid.chestCost;
-        row.totalGold += goldDelta;
-        roster.plannerTotalGold += goldDelta;
-      }
-      return true;
-    }
-
-    return false;
-  }
-
-  private sameBooleanRecord(
-    left: Record<string, boolean>,
-    right: Record<string, boolean>
-  ): boolean {
-    const leftKeys = Object.keys(left);
-    const rightKeys = Object.keys(right);
-
-    if (leftKeys.length !== rightKeys.length) {
-      return false;
-    }
-
-    return leftKeys.every((key) => left[key] === right[key]);
+  private formatLocalTimestamp(value: string): string {
+    const date = new Date(value);
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    }).format(date);
   }
 }

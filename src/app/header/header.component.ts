@@ -2,6 +2,7 @@ import { Component, Input, OnDestroy, OnInit } from '@angular/core';
 import { DecimalPipe, NgFor, NgIf } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { GroupRoster } from '../api-model';
+import { getNextDailyResetAt, getWeeklyResetContext } from '../../shared/rosterhq-core.js';
 
 @Component({
   selector: 'app-header',
@@ -10,7 +11,6 @@ import { GroupRoster } from '../api-model';
   styleUrl: './header.component.css'
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-  private readonly resetTimeZone = 'Asia/Jerusalem';
   private intervalId: number | null = null;
 
   @Input() rosters: GroupRoster[] = [];
@@ -47,8 +47,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   private updateResetTimers(): void {
     const now = new Date();
-    const dailyTarget = this.getNextReset(now, false);
-    const weeklyTarget = this.getNextReset(now, true);
+    const dailyTarget = getNextDailyResetAt(now);
+    const weeklyTarget = new Date(getWeeklyResetContext(now).nextWeeklyResetAt);
 
     this.dailyReset = this.formatDailyCountdown(dailyTarget.getTime() - now.getTime());
     this.weeklyReset = this.formatWeeklyCountdown(weeklyTarget.getTime() - now.getTime());
@@ -61,37 +61,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.dailyReset = '--H --M --S';
       this.weeklyReset = '--D --H --M --S';
     }
-  }
-
-  private getNextReset(now: Date, weekly: boolean): Date {
-    const local = this.getZonedParts(now);
-    const currentWeekday = new Date(Date.UTC(local.year, local.month - 1, local.day)).getUTCDay();
-    let dayOffset = 0;
-
-    if (weekly) {
-      dayOffset = (3 - currentWeekday + 7) % 7;
-      if (dayOffset === 0 && this.isAtOrPastReset(local)) {
-        dayOffset = 7;
-      }
-    } else if (this.isAtOrPastReset(local)) {
-      dayOffset = 1;
-    }
-
-    const baseDate = new Date(Date.UTC(local.year, local.month - 1, local.day));
-    baseDate.setUTCDate(baseDate.getUTCDate() + dayOffset);
-
-    return this.zonedDateTimeToUtcDate(
-      baseDate.getUTCFullYear(),
-      baseDate.getUTCMonth() + 1,
-      baseDate.getUTCDate(),
-      13,
-      0,
-      0
-    );
-  }
-
-  private isAtOrPastReset(local: ReturnType<HeaderComponent['getZonedParts']>): boolean {
-    return local.hour > 13 || (local.hour === 13 && (local.minute > 0 || local.second >= 0));
   }
 
   private formatDailyCountdown(msUntilReset: number): string {
@@ -114,72 +83,5 @@ export class HeaderComponent implements OnInit, OnDestroy {
       `${String(minutes).padStart(2, '0')}M`,
       `${String(seconds).padStart(2, '0')}S`
     ].join(' ');
-  }
-
-  private zonedDateTimeToUtcDate(year: number, month: number, day: number, hour: number, minute: number, second: number): Date {
-    const desiredUtc = Date.UTC(year, month - 1, day, hour, minute, second);
-    let guess = desiredUtc;
-
-    for (let iteration = 0; iteration < 4; iteration += 1) {
-      const zoned = this.getZonedParts(new Date(guess));
-      const zonedAsUtc = Date.UTC(
-        zoned.year,
-        zoned.month - 1,
-        zoned.day,
-        zoned.hour,
-        zoned.minute,
-        zoned.second
-      );
-      guess += desiredUtc - zonedAsUtc;
-    }
-
-    return new Date(guess);
-  }
-
-  private getZonedParts(date: Date): {
-    year: number;
-    month: number;
-    day: number;
-    hour: number;
-    minute: number;
-    second: number;
-  } {
-    let formatter: Intl.DateTimeFormat;
-
-    try {
-      formatter = new Intl.DateTimeFormat('en-GB', {
-        timeZone: this.resetTimeZone,
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hourCycle: 'h23'
-      });
-    } catch {
-      formatter = new Intl.DateTimeFormat('en-GB', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hourCycle: 'h23'
-      });
-    }
-
-    const parts = formatter.formatToParts(date);
-    const getValue = (type: Intl.DateTimeFormatPartTypes) =>
-      Number(parts.find((part) => part.type === type)?.value ?? '0');
-
-    return {
-      year: getValue('year'),
-      month: getValue('month'),
-      day: getValue('day'),
-      hour: getValue('hour'),
-      minute: getValue('minute'),
-      second: getValue('second')
-    };
   }
 }

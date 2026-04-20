@@ -1,41 +1,9 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
+import { formatClassLabel, ROSTER_OWNER_DEFINITIONS } from '../src/shared/rosterhq-core.js';
 
-const rosterSources = [
-  {
-    key: 'shekel',
-    title: "Shekel's Roster",
-    sourceCharacter: 'ẞcombatscore',
-    sourcePath: '/character/CE/%E1%BA%9Ecombatscore/roster',
-    bannerImage: '',
-    bannerAccent: '#ff5fab'
-  },
-  {
-    key: 'dj',
-    title: "DJ's Roster",
-    sourceCharacter: 'Bröke',
-    sourcePath: '/character/CE/Br%C3%B6ke/roster',
-    bannerImage: 'images/dj-roster-banner-expanded-2.png',
-    bannerAccent: '#ff7ac3'
-  },
-  {
-    key: 'hollow',
-    title: "Hollow's Roster",
-    sourceCharacter: 'Ardeö',
-    sourcePath: '/character/CE/Arde%C3%B6/roster',
-    bannerImage: 'images/hollow-roster-banner.png',
-    bannerAccent: '#ff6f95'
-  },
-  {
-    key: 'basri',
-    title: "Basri's Roster",
-    sourceCharacter: 'Scrabb',
-    sourcePath: '/character/CE/Scrabb/roster',
-    bannerImage: '',
-    bannerAccent: '#f76dc8'
-  }
-];
+const rosterSources = ROSTER_OWNER_DEFINITIONS;
 
 async function fetchRosterHtml(sourcePath) {
   for (let attempt = 1; attempt <= 4; attempt += 1) {
@@ -109,31 +77,6 @@ function extractRosterLiteral(html) {
   }
 
   throw new Error('Roster array end was not found.');
-}
-
-function formatClassLabel(classKey) {
-  const knownLabels = {
-    soul_eater: 'Souleater',
-    dragon_knight: 'Valkyrie',
-    blade: 'Deathblade',
-    alchemist: 'Alchemist',
-    berserker: 'Berserker',
-    breaker: 'Breaker',
-    bard: 'Bard',
-    artist: 'Artist',
-    holy_knight: 'Paladin',
-    paladin: 'Paladin'
-  };
-
-  if (knownLabels[classKey]) {
-    return knownLabels[classKey];
-  }
-
-  return classKey
-    .split(/[_-]/g)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
 }
 
 function mapCharacter(entry) {

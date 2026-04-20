@@ -21,11 +21,11 @@
             <span class="stat-value">{{ roster.highestItemLevel | number:'1.2-2' }}</span>
           </div>
           <div>
-            <span class="stat-label">Planned gold</span>
+            <span class="stat-label">Earned gold</span>
             <span class="stat-value">{{ roster.plannerTotalGold | number:'1.0-0' }}</span>
           </div>
           <div>
-            <span class="stat-label">Planned raids</span>
+            <span class="stat-label">Finished raids</span>
             <span class="stat-value">{{ roster.plannerCompletedCount }}</span>
           </div>
         </div>
@@ -35,10 +35,10 @@
     <section class="planner-shell">
       <div class="planner-shell-header">
         <div>
-          <h3>WEEKLY GOLD PLANNER</h3>
+          <h3>WEEKLY RAID TRACKER</h3>
         </div>
         <div class="planner-shell-total">
-          <span>Roster total</span>
+          <span>Roster gold</span>
           <strong>{{ roster.plannerTotalGold | number:'1.0-0' }}</strong>
         </div>
       </div>
@@ -68,6 +68,7 @@
                 </svg>
                 {{ character.combatPower | number:'1.2-2' }}
               </span>
+              <span class="planner-metric">Updated {{ formatUpdated(character.lastUpdate) }}</span>
             </div>
           </div>
 
@@ -87,7 +88,7 @@
                     <input
                       type="checkbox"
                       [checked]="raid.completed"
-                      (change)="onRaidToggle(character.id, raid.raidKey, $any($event.target).checked)"
+                      (change)="onRaidToggle(character, raid, $any($event.target).checked)"
                     />
                     <span class="planner-toggle-copy">
                       <strong>{{ getDifficultyLabel(raid.difficulty) }}</strong>
@@ -99,10 +100,10 @@
                       type="checkbox"
                       [checked]="raid.buysChest"
                       [disabled]="!raid.completed"
-                      (change)="onChestToggle(character.id, raid.raidKey, $any($event.target).checked)"
+                      (change)="onChestToggle(character, raid, $any($event.target).checked)"
                     />
                     <span class="planner-chest-copy">
-                      <strong>Chest</strong>
+                      <strong>Bought in</strong>
                       <small>-{{ raid.chestCost | number:'1.0-0' }}</small>
                     </span>
                   </label>
@@ -114,6 +115,58 @@
             </div>
           </div>
         </article>
+      </div>
+    </section>
+
+    <section class="life-energy-shell">
+      <div class="life-energy-header">
+        <div>
+          <h3>LIFE ENERGY</h3>
+          <p>Enter the current value and Roster HQ will keep the full timer aligned with Discord reminders.</p>
+        </div>
+        <div class="life-energy-badge" [class.life-energy-badge-full]="getLifeEnergyPreview(roster.key).isFull">
+          {{ getLifeEnergyTimeRemaining(roster.key) }}
+        </div>
+      </div>
+
+      <label class="life-energy-input-block">
+        <span class="life-energy-label">Current life energy</span>
+        <input
+          type="number"
+          min="0"
+          max="11500"
+          [value]="getLifeEnergyInput(roster.key)"
+          (input)="onLifeEnergyInput(roster.key, $any($event.target).value)"
+        />
+      </label>
+
+      <div class="life-energy-stats">
+        <div>
+          <span class="life-energy-stat-label">Current</span>
+          <strong>{{ getLifeEnergyPreview(roster.key).currentLifeEnergy | number:'1.0-0' }}</strong>
+        </div>
+        <div>
+          <span class="life-energy-stat-label">Max</span>
+          <strong>{{ getLifeEnergyPreview(roster.key).maxLifeEnergy | number:'1.0-0' }}</strong>
+        </div>
+        <div>
+          <span class="life-energy-stat-label">Missing</span>
+          <strong>{{ getLifeEnergyPreview(roster.key).missingLifeEnergy | number:'1.0-0' }}</strong>
+        </div>
+        <div>
+          <span class="life-energy-stat-label">Time until full</span>
+          <strong>{{ getLifeEnergyTimeRemaining(roster.key) }}</strong>
+        </div>
+      </div>
+
+      <div class="life-energy-footer">
+        <div class="life-energy-exact">
+          <span class="life-energy-stat-label">Full at</span>
+          <strong>{{ getLifeEnergyTimestamp(roster.key) }}</strong>
+        </div>
+        <span class="life-energy-sync" [class.is-saving]="getLifeEnergyStatus(roster.key) === 'saving'" [class.is-error]="getLifeEnergyStatus(roster.key) === 'error'">
+          {{ getLifeEnergyMessage(roster.key) }}
+        </span>
       </div>
     </section>
   </section>

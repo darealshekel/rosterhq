@@ -92,6 +92,7 @@ export class RosterComponent implements OnInit, OnDestroy {
 
   readonly raidFamilies = RAID_FAMILY_DEFINITIONS as RaidFamilyDefinition[];
   plannerRosters: PlannerRosterView[] = [];
+  selectedLifeEnergyRosterKey = '';
   lifeEnergyUiState: Record<string, LifeEnergyUiState> = {};
   syncState: RosterSyncState = {
     reset: {
@@ -301,6 +302,14 @@ export class RosterComponent implements OnInit, OnDestroy {
     return this.lifeEnergyUiState[rosterKey]?.message ?? 'Saved values power Discord reminders.';
   }
 
+  onLifeEnergyRosterChange(rosterKey: string): void {
+    this.selectedLifeEnergyRosterKey = rosterKey;
+  }
+
+  getLifeEnergyRosterTitle(rosterKey: string): string {
+    return this.plannerRosters.find((roster) => roster.key === rosterKey)?.title ?? 'Selected roster';
+  }
+
   private buildPlannerRoster(roster: GroupRoster): PlannerRosterView {
     const plannerRows = roster.characters.map((character) => this.buildPlannerRow(roster.key, character));
     return {
@@ -374,6 +383,7 @@ export class RosterComponent implements OnInit, OnDestroy {
 
   private rebuildPlannerRosters(): void {
     this.plannerRosters = this.sourceRosters.map((roster) => this.buildPlannerRoster(roster));
+    this.syncSelectedLifeEnergyRosterKey();
   }
 
   private initializeLifeEnergyInputs(): void {
@@ -451,5 +461,13 @@ export class RosterComponent implements OnInit, OnDestroy {
       dateStyle: 'medium',
       timeStyle: 'short'
     }).format(date);
+  }
+
+  private syncSelectedLifeEnergyRosterKey(): void {
+    if (this.plannerRosters.some((roster) => roster.key === this.selectedLifeEnergyRosterKey)) {
+      return;
+    }
+
+    this.selectedLifeEnergyRosterKey = this.plannerRosters[0]?.key ?? '';
   }
 }

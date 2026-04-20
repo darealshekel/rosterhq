@@ -185,4 +185,47 @@ describe('RosterComponent', () => {
     expect(preview.currentLifeEnergy).toBeGreaterThanOrEqual(10000);
     expect(preview.msUntilFull).toBeLessThanOrEqual(30 * 60 * 1000);
   });
+
+  it('shows a single shared life energy panel bound to the selected roster', () => {
+    component.rosters = [
+      {
+        key: 'shekel',
+        title: "Shekel's Roster",
+        sourcePath: '/character/test',
+        sourceCharacter: 'Tester',
+        bannerImage: '',
+        bannerAccent: '#ff5fab',
+        averageItemLevel: 0,
+        averageCombatPower: 0,
+        highestItemLevel: 0,
+        allCharacters: [],
+        characters: []
+      },
+      {
+        key: 'dj',
+        title: "DJ's Roster",
+        sourcePath: '/character/dj',
+        sourceCharacter: 'DJ',
+        bannerImage: '',
+        bannerAccent: '#ff5fab',
+        averageItemLevel: 0,
+        averageCombatPower: 0,
+        highestItemLevel: 0,
+        allCharacters: [],
+        characters: []
+      }
+    ];
+
+    fixture.detectChanges();
+
+    const host: HTMLElement = fixture.nativeElement;
+    expect(host.querySelectorAll('.life-energy-shell').length).toBe(1);
+    expect(component.selectedLifeEnergyRosterKey).toBe('shekel');
+
+    component.onLifeEnergyRosterChange('dj');
+    fixture.detectChanges();
+
+    expect(component.selectedLifeEnergyRosterKey).toBe('dj');
+    expect(host.querySelector('.life-energy-selected-roster strong')?.textContent).toContain("DJ's Roster");
+  });
 });

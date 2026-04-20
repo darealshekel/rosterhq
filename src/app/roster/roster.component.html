@@ -118,56 +118,73 @@
       </div>
     </section>
 
-    <section class="life-energy-shell">
-      <div class="life-energy-header">
-        <div>
-          <h3>LIFE ENERGY</h3>
-          <p>Enter the current value and Roster HQ will keep the full timer aligned with Discord reminders.</p>
-        </div>
-        <div class="life-energy-badge" [class.life-energy-badge-full]="getLifeEnergyPreview(roster.key).isFull">
-          {{ getLifeEnergyTimeRemaining(roster.key) }}
-        </div>
-      </div>
-
-      <label class="life-energy-input-block">
-        <span class="life-energy-label">Current life energy</span>
-        <input
-          type="number"
-          min="0"
-          max="11500"
-          [value]="getLifeEnergyInput(roster.key)"
-          (input)="onLifeEnergyInput(roster.key, $any($event.target).value)"
-        />
-      </label>
-
-      <div class="life-energy-stats">
-        <div>
-          <span class="life-energy-stat-label">Current</span>
-          <strong>{{ getLifeEnergyPreview(roster.key).currentLifeEnergy | number:'1.0-0' }}</strong>
-        </div>
-        <div>
-          <span class="life-energy-stat-label">Max</span>
-          <strong>{{ getLifeEnergyPreview(roster.key).maxLifeEnergy | number:'1.0-0' }}</strong>
-        </div>
-        <div>
-          <span class="life-energy-stat-label">Missing</span>
-          <strong>{{ getLifeEnergyPreview(roster.key).missingLifeEnergy | number:'1.0-0' }}</strong>
-        </div>
-        <div>
-          <span class="life-energy-stat-label">Time until full</span>
-          <strong>{{ getLifeEnergyTimeRemaining(roster.key) }}</strong>
-        </div>
-      </div>
-
-      <div class="life-energy-footer">
-        <div class="life-energy-exact">
-          <span class="life-energy-stat-label">Full at</span>
-          <strong>{{ getLifeEnergyTimestamp(roster.key) }}</strong>
-        </div>
-        <span class="life-energy-sync" [class.is-saving]="getLifeEnergyStatus(roster.key) === 'saving'" [class.is-error]="getLifeEnergyStatus(roster.key) === 'error'">
-          {{ getLifeEnergyMessage(roster.key) }}
-        </span>
-      </div>
-    </section>
   </section>
 </div>
+
+<section class="life-energy-shell" *ngIf="selectedLifeEnergyRosterKey as rosterKey">
+  <div class="life-energy-header">
+    <div>
+      <h3>LIFE ENERGY</h3>
+      <p>Enter the current value and Roster HQ will keep the full timer aligned with Discord reminders.</p>
+    </div>
+    <div class="life-energy-badge" [class.life-energy-badge-full]="getLifeEnergyPreview(rosterKey).isFull">
+      {{ getLifeEnergyTimeRemaining(rosterKey) }}
+    </div>
+  </div>
+
+  <div class="life-energy-toolbar">
+    <label class="life-energy-input-block life-energy-roster-picker" *ngIf="plannerRosters.length > 1">
+      <span class="life-energy-label">Roster</span>
+      <select [value]="rosterKey" (change)="onLifeEnergyRosterChange($any($event.target).value)">
+        <option *ngFor="let roster of plannerRosters; trackBy: trackRoster" [value]="roster.key">
+          {{ roster.title }}
+        </option>
+      </select>
+    </label>
+
+    <div class="life-energy-selected-roster">
+      <span class="life-energy-stat-label">Tracking</span>
+      <strong>{{ getLifeEnergyRosterTitle(rosterKey) }}</strong>
+    </div>
+  </div>
+
+  <label class="life-energy-input-block">
+    <span class="life-energy-label">Current life energy</span>
+    <input
+      type="number"
+      min="0"
+      max="11500"
+      [value]="getLifeEnergyInput(rosterKey)"
+      (input)="onLifeEnergyInput(rosterKey, $any($event.target).value)"
+    />
+  </label>
+
+  <div class="life-energy-stats">
+    <div>
+      <span class="life-energy-stat-label">Current</span>
+      <strong>{{ getLifeEnergyPreview(rosterKey).currentLifeEnergy | number:'1.0-0' }}</strong>
+    </div>
+    <div>
+      <span class="life-energy-stat-label">Max</span>
+      <strong>{{ getLifeEnergyPreview(rosterKey).maxLifeEnergy | number:'1.0-0' }}</strong>
+    </div>
+    <div>
+      <span class="life-energy-stat-label">Missing</span>
+      <strong>{{ getLifeEnergyPreview(rosterKey).missingLifeEnergy | number:'1.0-0' }}</strong>
+    </div>
+    <div>
+      <span class="life-energy-stat-label">Time until full</span>
+      <strong>{{ getLifeEnergyTimeRemaining(rosterKey) }}</strong>
+    </div>
+  </div>
+
+  <div class="life-energy-footer">
+    <div class="life-energy-exact">
+      <span class="life-energy-stat-label">Full at</span>
+      <strong>{{ getLifeEnergyTimestamp(rosterKey) }}</strong>
+    </div>
+    <span class="life-energy-sync" [class.is-saving]="getLifeEnergyStatus(rosterKey) === 'saving'" [class.is-error]="getLifeEnergyStatus(rosterKey) === 'error'">
+      {{ getLifeEnergyMessage(rosterKey) }}
+    </span>
+  </div>
+</section>

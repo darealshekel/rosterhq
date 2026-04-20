@@ -615,6 +615,8 @@
 }
 
 .life-energy-shell {
+  width: min(1780px, calc(100% - 12px));
+  margin: 0 auto 30px;
   display: grid;
   gap: 18px;
   padding: 22px;
@@ -623,6 +625,13 @@
     linear-gradient(180deg, rgba(255, 116, 192, 0.05), rgba(255, 116, 192, 0) 38%),
     rgba(255, 238, 247, 0.025);
   border: 1px solid rgba(255, 201, 228, 0.08);
+}
+
+.life-energy-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: end;
 }
 
 .life-energy-header {
@@ -680,6 +689,30 @@
   gap: 8px;
 }
 
+.life-energy-roster-picker select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 201, 228, 0.12);
+  background: rgba(12, 7, 10, 0.7);
+  color: #fff4fb;
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: 700;
+  outline: none;
+  appearance: none;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background-color 180ms ease;
+}
+
+.life-energy-roster-picker select:focus {
+  border-color: rgba(255, 151, 214, 0.36);
+  box-shadow: 0 0 0 3px rgba(255, 125, 197, 0.14);
+}
+
 .life-energy-label,
 .life-energy-stat-label {
   font-size: 0.58rem;
@@ -732,6 +765,24 @@
   font-size: 0.95rem;
   line-height: 1.15;
   font-variant-numeric: tabular-nums;
+}
+
+.life-energy-selected-roster {
+  min-height: 62px;
+  padding: 12px 13px;
+  border-radius: 14px;
+  background: rgba(255, 239, 247, 0.035);
+  border: 1px solid rgba(255, 204, 228, 0.08);
+  display: grid;
+  gap: 6px;
+  align-content: center;
+}
+
+.life-energy-selected-roster strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 
 .life-energy-footer {
@@ -790,6 +841,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .life-energy-toolbar,
   .life-energy-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -815,6 +867,7 @@
   .planner-shell-header,
   .planner-row-header,
   .roster-panel-header,
+  .life-energy-toolbar,
   .life-energy-header,
   .life-energy-footer {
     grid-template-columns: 1fr;

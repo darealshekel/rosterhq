@@ -84,10 +84,10 @@
               <article class="planner-raid-slot" *ngFor="let family of raidFamilies; trackBy: trackRaidFamily">
                 <span class="planner-slot-label">{{ family.title }}</span>
                 <ng-container *ngIf="character.raidsByFamily[family.key] as raid; else notEligible">
-                  <label class="planner-raid-toggle" [class.checked]="raid.completed">
+                  <label class="planner-raid-toggle" [class.checked]="isRaidAvailable(raid)">
                     <input
                       type="checkbox"
-                      [checked]="raid.completed"
+                      [checked]="isRaidAvailable(raid)"
                       (change)="onRaidToggle(character, raid, $any($event.target).checked)"
                     />
                     <span class="planner-toggle-copy">
@@ -95,11 +95,11 @@
                       <small>{{ raid.gold | number:'1.0-0' }}</small>
                     </span>
                   </label>
-                  <label class="planner-chest-toggle" *ngIf="raid.chestCost > 0" [class.checked]="raid.buysChest" [class.disabled]="!raid.completed">
+                  <label class="planner-chest-toggle" *ngIf="raid.chestCost > 0" [class.checked]="raid.buysChest" [class.disabled]="isRaidAvailable(raid)">
                     <input
                       type="checkbox"
                       [checked]="raid.buysChest"
-                      [disabled]="!raid.completed"
+                      [disabled]="isRaidAvailable(raid)"
                       (change)="onChestToggle(character, raid, $any($event.target).checked)"
                     />
                     <span class="planner-chest-copy">

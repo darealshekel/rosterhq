@@ -38,9 +38,10 @@ export default {
   /**
    * @param {Request} request
    * @param {Env} env
+   * @param {ExecutionContext} ctx
    * @returns {Promise<Response>}
    */
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const origin = request.headers.get('Origin');
     const url = new URL(request.url);
 
@@ -53,7 +54,7 @@ export default {
 
     try {
       if (url.pathname === '/api/discord/interactions' && request.method === 'POST') {
-        return handleDiscordInteraction(request, env);
+        return handleDiscordInteraction(request, env, ctx);
       }
 
       await seedStaticData(env);
@@ -482,9 +483,10 @@ async function syncRosterSnapshot(env, rosters) {
 /**
  * @param {Request} request
  * @param {Env} env
+ * @param {ExecutionContext} ctx
  * @returns {Promise<Response>}
  */
-async function handleDiscordInteraction(request, env) {
+async function handleDiscordInteraction(request, env, ctx) {
   if (!env.DISCORD_PUBLIC_KEY) {
     return new Response('Discord public key is not configured.', { status: 500 });
   }
@@ -513,7 +515,23 @@ async function handleDiscordInteraction(request, env) {
     }
 
     if (interaction.type === 2) {
-      return discordJson(await handleRaidCommand(env, interaction));
+      console.log('discord command received', JSON.stringify({
+        command: interaction.data?.name ?? null,
+        interactionId: interaction.id ?? null,
+        guildId: interaction.guild_id ?? null
+      }));
+
+      if (!env.DISCORD_APPLICATION_ID || !interaction.token) {
+        return discordJson(await handleRaidCommand(env, interaction));
+      }
+
+      ctx.waitUntil(processDeferredRaidCommand(env, interaction));
+      return discordJson({
+        type: 5,
+        data: {
+          flags: 64
+        }
+      });
     }
 
     return discordJson({
@@ -693,6 +711,25 @@ async function handleRaidCommand(env, interaction) {
 
 /**
  * @param {Env} env
+ * @param {any} interaction
+ * @returns {Promise<void>}
+ */
+async function processDeferredRaidCommand(env, interaction) {
+  try {
+    const response = await handleRaidCommand(env, interaction);
+    const content = response?.data?.content ?? 'Weekly completion synced successfully.';
+    await updateOriginalInteractionResponse(env, interaction.token, content);
+  } catch (error) {
+    console.error('deferred discord command failed', error);
+    const message = error instanceof Error
+      ? `Roster HQ failed to process that command: ${error.message}`
+      : 'Roster HQ failed to process that command.';
+    await updateOriginalInteractionResponse(env, interaction.token, message);
+  }
+}
+
+/**
+ * @param {Env} env
  * @param {Date} now
  * @returns {Promise<void>}
  */
@@ -831,6 +868,32 @@ async function sendDiscordMessage(env, content) {
   if (!response.ok) {
     const body = await response.text();
     throw new Error(`Failed to send Discord message: ${response.status} ${body}`);
+  }
+}
+
+/**
+ * @param {Env} env
+ * @param {string} interactionToken
+ * @param {string} content
+ * @returns {Promise<void>}
+ */
+async function updateOriginalInteractionResponse(env, interactionToken, content) {
+  const response = await fetch(
+    `https://discord.com/api/v10/webhooks/${env.DISCORD_APPLICATION_ID}/${interactionToken}/messages/@original`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        content
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`Failed to update Discord interaction response: ${response.status} ${body}`);
   }
 }
 

@@ -156,7 +156,8 @@ export class RosterComponent implements OnInit, OnDestroy {
     return `${diffDays}d ago`;
   }
 
-  onRaidToggle(character: CharacterPlannerRow, raid: CharacterPlannerRaid, completed: boolean): void {
+  onRaidToggle(character: CharacterPlannerRow, raid: CharacterPlannerRaid, isChecked: boolean): void {
+    const completed = !isChecked;
     this.rosterStateService.upsertRaidCompletion({
       rosterKey: character.rosterKey,
       characterId: character.id,
@@ -308,6 +309,10 @@ export class RosterComponent implements OnInit, OnDestroy {
 
   getLifeEnergyRosterTitle(rosterKey: string): string {
     return this.plannerRosters.find((roster) => roster.key === rosterKey)?.title ?? 'Selected roster';
+  }
+
+  isRaidAvailable(raid: CharacterPlannerRaid): boolean {
+    return !raid.completed;
   }
 
   private buildPlannerRoster(roster: GroupRoster): PlannerRosterView {

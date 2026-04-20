@@ -114,6 +114,66 @@ describe('RosterComponent', () => {
     expect(component.plannerRosters[0].plannerTotalGold).toBe(54000);
   });
 
+  it('renders raids as checked until they are completed for the week', () => {
+    component.rosters = [
+      {
+        key: 'shekel',
+        title: "Shekel's Roster",
+        sourcePath: '/character/test',
+        sourceCharacter: 'Tester',
+        bannerImage: '',
+        bannerAccent: '#ff5fab',
+        averageItemLevel: 0,
+        averageCombatPower: 0,
+        highestItemLevel: 0,
+        allCharacters: [],
+        characters: [
+          {
+            id: 777,
+            name: 'Bröke',
+            classKey: 'soul_eater',
+            classLabel: 'Souleater',
+            itemLevel: 1745,
+            combatPower: 5000,
+            combatPowerIsEstimate: false,
+            lastUpdate: 1,
+            characterUrl: 'https://example.com/broke'
+          }
+        ]
+      }
+    ];
+
+    fixture.detectChanges();
+
+    const raid = component.plannerRosters[0].plannerRows[0].raidsByFamily['serca'];
+    expect(raid).toBeDefined();
+    expect(component.isRaidAvailable(raid!)).toBeTrue();
+
+    rosterState.pushState({
+      reset: getWeeklyResetContext(),
+      raidCompletions: [
+        {
+          weekId: getWeeklyResetContext().currentWeekId,
+          rosterKey: 'shekel',
+          characterId: 777,
+          characterName: 'Bröke',
+          familyKey: 'serca',
+          raidKey: 'serca-nightmare',
+          difficulty: 'NIGHTMARE',
+          boughtIn: false,
+          completedAt: new Date().toISOString(),
+          completedSource: 'discord'
+        }
+      ],
+      lifeEnergy: [],
+      version: 3
+    });
+
+    const completedRaid = component.plannerRosters[0].plannerRows[0].raidsByFamily['serca'];
+    expect(completedRaid?.completed).toBeTrue();
+    expect(component.isRaidAvailable(completedRaid!)).toBeFalse();
+  });
+
   it('keeps non-whitelisted 1740 characters on serca hm', () => {
     component.rosters = [
       {

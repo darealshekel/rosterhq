@@ -277,8 +277,8 @@ describe('RosterComponent', () => {
     });
 
     const preview = component.getLifeEnergyPreview('shekel');
-    expect(preview.currentLifeEnergy).toBeGreaterThanOrEqual(10000);
-    expect(preview.msUntilFull).toBeLessThanOrEqual(30 * 60 * 1000);
+    expect(preview.currentLifeEnergy).toBeGreaterThanOrEqual(10000 + (6 * 33));
+    expect(preview.msUntilFull).toBeLessThanOrEqual(400 * 60 * 1000);
   });
 
   it('shows a single shared life energy panel bound to the selected roster', () => {

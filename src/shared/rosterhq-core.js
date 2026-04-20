@@ -10,7 +10,6 @@ export const LIFE_ENERGY_MAX = 11500;
 export const LIFE_ENERGY_RESTORE_AMOUNT = 33;
 export const LIFE_ENERGY_RESTORE_WINDOW_MINUTES = 10;
 export const LIFE_ENERGY_WINDOW_MS = LIFE_ENERGY_RESTORE_WINDOW_MINUTES * 60 * 1000;
-export const LIFE_ENERGY_RESTORE_PER_MS = LIFE_ENERGY_RESTORE_AMOUNT / LIFE_ENERGY_WINDOW_MS;
 export const DISCORD_NONE_OPTION_VALUE = 'none';
 
 /**
@@ -509,9 +508,12 @@ export function calculateLifeEnergyFromCurrent(value, updatedAt = new Date()) {
   const currentLifeEnergy = clampLifeEnergy(value);
   const exactCurrentLifeEnergy = currentLifeEnergy;
   const missingLifeEnergy = Math.max(0, LIFE_ENERGY_MAX - currentLifeEnergy);
+  const ticksUntilFull = missingLifeEnergy === 0
+    ? 0
+    : Math.ceil(missingLifeEnergy / LIFE_ENERGY_RESTORE_AMOUNT);
   const msUntilFull = missingLifeEnergy === 0
     ? 0
-    : Math.ceil((missingLifeEnergy * LIFE_ENERGY_WINDOW_MS) / LIFE_ENERGY_RESTORE_AMOUNT);
+    : ticksUntilFull * LIFE_ENERGY_WINDOW_MS;
   const fullAt = new Date(updatedAt.getTime() + msUntilFull);
 
   return {
@@ -539,18 +541,17 @@ export function projectLifeEnergyStatus(status, now = new Date()) {
   const updatedAt = status.life_energy_last_updated_at
     ? new Date(status.life_energy_last_updated_at)
     : now;
-  const fullAt = status.calculated_full_at ? new Date(status.calculated_full_at) : null;
   const elapsedMs = Math.max(0, now.getTime() - updatedAt.getTime());
-  const regenerated = elapsedMs * LIFE_ENERGY_RESTORE_PER_MS;
+  const completedTicks = Math.floor(elapsedMs / LIFE_ENERGY_WINDOW_MS);
+  const regenerated = completedTicks * LIFE_ENERGY_RESTORE_AMOUNT;
   const exactCurrentLifeEnergy = Math.min(LIFE_ENERGY_MAX, baseCurrent + regenerated);
-  const currentLifeEnergy = Math.min(LIFE_ENERGY_MAX, Math.floor(exactCurrentLifeEnergy));
+  const currentLifeEnergy = exactCurrentLifeEnergy;
   const missingLifeEnergy = Math.max(0, LIFE_ENERGY_MAX - currentLifeEnergy);
-  const msUntilFull = fullAt
-    ? Math.max(0, fullAt.getTime() - now.getTime())
-    : Math.max(
-      0,
-      Math.ceil(((LIFE_ENERGY_MAX - exactCurrentLifeEnergy) * LIFE_ENERGY_WINDOW_MS) / LIFE_ENERGY_RESTORE_AMOUNT)
-    );
+  const totalTicksToFull = baseCurrent >= LIFE_ENERGY_MAX
+    ? 0
+    : Math.ceil((LIFE_ENERGY_MAX - baseCurrent) / LIFE_ENERGY_RESTORE_AMOUNT);
+  const fullAt = new Date(updatedAt.getTime() + (totalTicksToFull * LIFE_ENERGY_WINDOW_MS));
+  const msUntilFull = Math.max(0, fullAt.getTime() - now.getTime());
 
   return {
     currentLifeEnergy,
@@ -559,7 +560,7 @@ export function projectLifeEnergyStatus(status, now = new Date()) {
     exactCurrentLifeEnergy,
     isFull: currentLifeEnergy >= LIFE_ENERGY_MAX || msUntilFull === 0,
     msUntilFull,
-    fullAt: fullAt ? fullAt.toISOString() : calculateLifeEnergyFromCurrent(baseCurrent, updatedAt).fullAt
+    fullAt: currentLifeEnergy >= LIFE_ENERGY_MAX ? updatedAt.toISOString() : fullAt.toISOString()
   };
 }
 

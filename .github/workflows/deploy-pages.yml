@@ -20,6 +20,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ROSTER_SYNC_API_URL: ${{ secrets.ROSTER_SYNC_API_URL }}
+      ROSTER_SYNC_TOKEN: ${{ secrets.ROSTER_SYNC_TOKEN }}
 
     steps:
       - name: Checkout
@@ -41,10 +44,7 @@ jobs:
         run: npm run sync:rosters
 
       - name: Sync roster snapshot to shared state worker
-        if: ${{ secrets.ROSTER_SYNC_API_URL != '' && secrets.ROSTER_SYNC_TOKEN != '' }}
-        env:
-          ROSTER_SYNC_API_URL: ${{ secrets.ROSTER_SYNC_API_URL }}
-          ROSTER_SYNC_TOKEN: ${{ secrets.ROSTER_SYNC_TOKEN }}
+        if: ${{ env.ROSTER_SYNC_API_URL != '' && env.ROSTER_SYNC_TOKEN != '' }}
         run: npm run sync:state
 
       - name: Build Angular app for Pages

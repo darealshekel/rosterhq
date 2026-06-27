@@ -47,6 +47,10 @@ jobs:
         if: ${{ env.ROSTER_SYNC_API_URL != '' && env.ROSTER_SYNC_TOKEN != '' }}
         run: npm run sync:state
 
+      - name: Sync weekly raid clears from lostark.bible logs
+        if: ${{ env.ROSTER_SYNC_API_URL != '' && env.ROSTER_SYNC_TOKEN != '' }}
+        run: npm run sync:logs
+
       - name: Build Angular app for Pages
         run: npm run build:pages
 

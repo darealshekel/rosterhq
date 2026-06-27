@@ -1,5 +1,9 @@
 import process from 'node:process';
-import { RAID_FAMILY_DEFINITIONS, ROSTER_OWNER_DEFINITIONS } from '../src/shared/rosterhq-core.js';
+import {
+  getDiscordDifficultyLabel,
+  RAID_FAMILY_DEFINITIONS,
+  ROSTER_OWNER_DEFINITIONS
+} from '../src/shared/rosterhq-core.js';
 
 const applicationId = process.env.DISCORD_APPLICATION_ID ?? process.env.DISCORD_CLIENT_ID;
 const guildId = process.env.DISCORD_GUILD_ID;
@@ -21,7 +25,7 @@ const commands = RAID_FAMILY_DEFINITIONS.map((family) => ({
       description: 'Raid difficulty to record.',
       required: true,
       choices: family.tiers.map((tier) => ({
-        name: tier.difficulty === 'NIGHTMARE' ? 'Nightmare' : tier.difficulty,
+        name: getDiscordDifficultyLabel(tier.difficulty),
         value: tier.difficulty
       }))
     },

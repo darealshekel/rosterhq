@@ -23,7 +23,7 @@ interface LifeEnergyMutation {
   providedIn: 'root'
 })
 export class RosterStateService implements OnDestroy {
-  private readonly storageKey = 'roster-hq-sync-cache-v3';
+  private readonly storageKey = 'roster-hq-sync-cache-v4';
   private readonly pollIntervalMs = 15000;
   private readonly endpoint = environment.rosterSyncApi;
   private readonly stateSubject = new BehaviorSubject<RosterSyncState>(this.restoreCachedState());

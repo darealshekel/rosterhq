@@ -111,8 +111,8 @@ describe('RosterComponent', () => {
     const plannerRow = component.plannerRosters[0].plannerRows[0];
     expect(plannerRow.raidsByFamily['serca']?.completed).toBeTrue();
     expect(plannerRow.raidsByFamily['serca']?.raidKey).toBe('serca-nightmare');
-    expect(plannerRow.totalGold).toBe(94000);
-    expect(component.plannerRosters[0].plannerTotalGold).toBe(94000);
+    expect(plannerRow.totalGold).toBe(144000);
+    expect(component.plannerRosters[0].plannerTotalGold).toBe(144000);
   });
 
   it('counts checked raids toward character total gold before anything is completed', () => {
@@ -145,8 +145,9 @@ describe('RosterComponent', () => {
     ];
 
     const plannerRow = component.plannerRosters[0].plannerRows[0];
-    expect(plannerRow.totalGold).toBe(148000);
-    expect(component.plannerRosters[0].plannerTotalGold).toBe(148000);
+    expect(plannerRow.totalGold).toBe(198000);
+    expect(component.plannerRosters[0].plannerTotalGold).toBe(198000);
+    expect(Object.keys(plannerRow.raidsByFamily).length).toBe(4);
   });
 
   it('renders raids as checked until they are completed for the week', () => {

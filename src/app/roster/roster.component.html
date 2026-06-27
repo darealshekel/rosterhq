@@ -21,7 +21,7 @@
             <span class="stat-value">{{ roster.highestItemLevel | number:'1.2-2' }}</span>
           </div>
           <div>
-            <span class="stat-label">Earned gold</span>
+            <span class="stat-label">Remaining gold</span>
             <span class="stat-value">{{ roster.plannerTotalGold | number:'1.0-0' }}</span>
           </div>
           <div>
@@ -38,7 +38,7 @@
           <h3>WEEKLY RAID TRACKER</h3>
         </div>
         <div class="planner-shell-total">
-          <span>Roster gold</span>
+          <span>Remaining gold</span>
           <strong>{{ roster.plannerTotalGold | number:'1.0-0' }}</strong>
         </div>
       </div>
@@ -74,7 +74,7 @@
 
           <div class="planner-card-middle">
             <div class="planner-total-block">
-              <span>Total</span>
+              <span>Remaining gold</span>
               <strong>{{ character.totalGold | number:'1.0-0' }}</strong>
             </div>
           </div>
@@ -92,9 +92,13 @@
                     />
                     <span class="planner-toggle-copy">
                       <strong>{{ getDifficultyLabel(raid.difficulty) }}</strong>
-                      <small>{{ raid.gold | number:'1.0-0' }}</small>
+                      <small>{{ raid.gold | number:'1.0-0' }} · {{ getRaidGoldLabel(raid) }}</small>
                     </span>
                   </label>
+                  <div class="planner-raid-meta">
+                    <small *ngIf="getRaidRewardSummary(raid) as rewardSummary">{{ rewardSummary }}</small>
+                    <small *ngIf="getRaidCoreSummary(raid) as coreSummary">{{ coreSummary }}</small>
+                  </div>
                   <label class="planner-chest-toggle" *ngIf="raid.chestCost > 0" [class.checked]="raid.buysChest" [class.disabled]="isRaidAvailable(raid)">
                     <input
                       type="checkbox"

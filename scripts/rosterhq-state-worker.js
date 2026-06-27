@@ -1,6 +1,7 @@
 import {
   calculateLifeEnergyFromCurrent,
   DISCORD_NONE_OPTION_VALUE,
+  getDiscordDifficultyLabel,
   getRaidFamilyByCommandName,
   getRaidTierByKey,
   getWeeklyResetContext,
@@ -99,6 +100,18 @@ export default {
 
         await syncRosterSnapshot(env, rosters);
         return jsonResponse({ ok: true, syncedAt: new Date().toISOString() }, origin, env);
+      }
+
+      if (url.pathname === '/api/admin/logs/sync' && request.method === 'POST') {
+        assertAdminAccess(request, env);
+        const payload = await request.json().catch(() => null);
+        const completions = Array.isArray(payload?.completions) ? payload.completions : payload;
+        if (!Array.isArray(completions)) {
+          return jsonResponse({ error: 'Expected a completions array.' }, origin, env, 400);
+        }
+
+        const result = await syncLogDerivedCompletions(env, completions);
+        return jsonResponse(result, origin, env);
       }
     } catch (error) {
       console.error('worker fetch failed', error);
@@ -260,11 +273,12 @@ async function buildClientState(env) {
 /**
  * @param {Env} env
  * @param {{ rosterKey: string; characterId: number; raidKey: string; boughtIn: boolean; completed: boolean }} payload
- * @param {'website' | 'discord'} source
+ * @param {'website' | 'discord' | 'log-sync'} source
  * @param {Record<string, unknown>} metadata
+ * @param {string} [completedAtOverride]
  * @returns {Promise<void>}
  */
-async function upsertRaidCompletion(env, payload, source, metadata) {
+async function upsertRaidCompletion(env, payload, source, metadata, completedAtOverride = new Date().toISOString()) {
   const reset = getWeeklyResetContext();
   const tier = getRaidTierByKey(payload.raidKey);
   if (!tier) {
@@ -340,7 +354,7 @@ async function upsertRaidCompletion(env, payload, source, metadata) {
       tier.key,
       tier.difficulty,
       payload.boughtIn ? 1 : 0,
-      new Date().toISOString(),
+      completedAtOverride,
       source,
       JSON.stringify(metadata)
     ]
@@ -478,6 +492,95 @@ async function syncRosterSnapshot(env, rosters) {
   }
 
   await env.ROSTERHQ_DB.batch(statements);
+}
+
+/**
+ * @param {Env} env
+ * @param {Array<any>} completions
+ * @returns {Promise<{ ok: true; weekId: string; syncedCount: number; skippedCount: number; removedCount: number; syncedAt: string }>}
+ */
+async function syncLogDerivedCompletions(env, completions) {
+  const reset = getWeeklyResetContext();
+  const currentRows = await queryAll(
+    env,
+    `
+      SELECT
+        id,
+        character_id AS characterId,
+        family_key AS familyKey,
+        completed_source AS completedSource
+      FROM weekly_raid_completions
+      WHERE week_id = ?
+    `,
+    [reset.currentWeekId]
+  );
+  const currentRowByKey = new Map(currentRows.map((row) => [`${row.characterId}:${row.familyKey}`, row]));
+  const nextLogKeys = new Set();
+  let syncedCount = 0;
+  let skippedCount = 0;
+
+  for (const completion of completions) {
+    if (!isAdminLogCompletionPayload(completion)) {
+      throw new HttpError(400, 'Invalid log sync completion payload.');
+    }
+
+    const tier = getRaidTierByKey(completion.raidKey);
+    if (!tier) {
+      throw new HttpError(400, `Unknown log sync raid key "${completion.raidKey}".`);
+    }
+
+    const key = `${completion.characterId}:${tier.familyKey}`;
+    nextLogKeys.add(key);
+
+    const existing = currentRowByKey.get(key);
+    if (existing && existing.completedSource !== 'log-sync') {
+      skippedCount += 1;
+      continue;
+    }
+
+    await upsertRaidCompletion(
+      env,
+      {
+        rosterKey: completion.rosterKey,
+        characterId: completion.characterId,
+        raidKey: completion.raidKey,
+        boughtIn: false,
+        completed: true
+      },
+      'log-sync',
+      {
+        logBoss: completion.logBoss,
+        logDifficulty: completion.logDifficulty,
+        syncedAt: new Date().toISOString()
+      },
+      completion.completedAt
+    );
+    syncedCount += 1;
+  }
+
+  const removableRows = currentRows.filter(
+    (row) => row.completedSource === 'log-sync' && !nextLogKeys.has(`${row.characterId}:${row.familyKey}`)
+  );
+
+  for (const row of removableRows) {
+    await execute(
+      env,
+      `
+        DELETE FROM weekly_raid_completions
+        WHERE id = ?
+      `,
+      [row.id]
+    );
+  }
+
+  return {
+    ok: true,
+    weekId: reset.currentWeekId,
+    syncedCount,
+    skippedCount,
+    removedCount: removableRows.length,
+    syncedAt: new Date().toISOString()
+  };
 }
 
 /**
@@ -697,7 +800,7 @@ async function handleRaidCommand(env, interaction) {
 
   const lines = [
     `Raid: ${family.title}`,
-    `Difficulty: ${tier.difficulty === 'NIGHTMARE' ? 'Nightmare' : tier.difficulty}`,
+    `Difficulty: ${getDiscordDifficultyLabel(tier.difficulty)}`,
     ...selections.map((selection) => (
       selection.characterId === null
         ? `${selection.roster.title.replace("'s Roster", '')}: None`
@@ -1046,6 +1149,23 @@ function isLifeEnergyMutation(payload) {
     typeof payload === 'object' &&
     typeof payload.rosterKey === 'string' &&
     typeof payload.currentLifeEnergy === 'number'
+  );
+}
+
+/**
+ * @param {unknown} payload
+ * @returns {payload is { rosterKey: string; characterId: number; raidKey: string; completedAt: string; logBoss: string; logDifficulty: string }}
+ */
+function isAdminLogCompletionPayload(payload) {
+  return Boolean(
+    payload &&
+    typeof payload === 'object' &&
+    typeof payload.rosterKey === 'string' &&
+    typeof payload.characterId === 'number' &&
+    typeof payload.raidKey === 'string' &&
+    typeof payload.completedAt === 'string' &&
+    typeof payload.logBoss === 'string' &&
+    typeof payload.logDifficulty === 'string'
   );
 }
 

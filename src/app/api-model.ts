@@ -64,7 +64,7 @@ export interface RosterGoldSummary {
   availableRaids: number;
 }
 
-export type RaidDifficulty = 'NM' | 'HM' | 'NIGHTMARE';
+export type RaidDifficulty = 'NM' | 'HM' | 'NIGHTMARE' | 'LV1' | 'LV2' | 'LV3';
 
 export interface ResetContext {
   now: string;
@@ -86,7 +86,7 @@ export interface WeeklyRaidCompletionRecord {
   difficulty: RaidDifficulty;
   boughtIn: boolean;
   completedAt: string;
-  completedSource: 'website' | 'discord';
+  completedSource: 'website' | 'discord' | 'log-sync';
 }
 
 export interface LifeEnergyStatusRecord {

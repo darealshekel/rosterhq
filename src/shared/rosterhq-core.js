@@ -13,7 +13,11 @@ export const LIFE_ENERGY_WINDOW_MS = LIFE_ENERGY_RESTORE_WINDOW_MINUTES * 60 * 1
 export const DISCORD_NONE_OPTION_VALUE = 'none';
 
 /**
- * @typedef {'NM' | 'HM' | 'NIGHTMARE'} RaidDifficulty
+ * @typedef {'NM' | 'HM' | 'NIGHTMARE' | 'LV1' | 'LV2' | 'LV3'} RaidDifficulty
+ */
+
+/**
+ * @typedef {'standard' | 'bound'} RaidGoldType
  */
 
 /**
@@ -24,7 +28,12 @@ export const DISCORD_NONE_OPTION_VALUE = 'none';
  *   difficulty: RaidDifficulty;
  *   itemLevel: number;
  *   gold: number;
+ *   goldType: RaidGoldType;
  *   chestCost: number;
+ *   bonusRewardLabel: string | null;
+ *   bonusRewardAmount: string | null;
+ *   arkGridCoreAmount: string | null;
+ *   arkGridCoreRarity: 'Epic' | 'Legendary' | null;
  *   sortOrder: number;
  * }} RaidTierDefinition
  */
@@ -60,6 +69,16 @@ export const DISCORD_NONE_OPTION_VALUE = 'none';
  *   msUntilFull: number;
  *   fullAt: string | null;
  * }} LifeEnergyComputation
+ */
+
+/**
+ * @typedef {{
+ *   boss: string;
+ *   difficulty: string;
+ *   familyKey: string;
+ *   raidKey?: string;
+ *   useHighestEligibleTier?: boolean;
+ * }} RaidLogMatcher
  */
 
 export const ROSTER_OWNER_DEFINITIONS = [
@@ -100,57 +119,130 @@ export const ROSTER_OWNER_DEFINITIONS = [
 export const RAID_FAMILY_DEFINITIONS = [
   {
     key: 'act-4',
-    commandName: 'act-4',
-    title: 'Act 4',
+    commandName: 'armoche',
+    title: 'Armoche',
     sortOrder: 10,
     tiers: [
       {
         key: 'act-4-nm',
         familyKey: 'act-4',
-        title: 'Act 4',
+        title: 'Armoche',
         difficulty: 'NM',
         itemLevel: 1700,
         gold: 33000,
+        goldType: 'standard',
         chestCost: 10560,
+        bonusRewardLabel: null,
+        bonusRewardAmount: null,
+        arkGridCoreAmount: '2+2',
+        arkGridCoreRarity: 'Epic',
         sortOrder: 1
       },
       {
         key: 'act-4-hm',
         familyKey: 'act-4',
-        title: 'Act 4',
+        title: 'Armoche',
         difficulty: 'HM',
         itemLevel: 1720,
         gold: 42000,
+        goldType: 'standard',
         chestCost: 13440,
+        bonusRewardLabel: null,
+        bonusRewardAmount: null,
+        arkGridCoreAmount: '2+2',
+        arkGridCoreRarity: 'Legendary',
         sortOrder: 2
       }
     ]
   },
   {
     key: 'final-day',
-    commandName: 'final-day',
-    title: 'Final Day',
+    commandName: 'kazeros',
+    title: 'Kazeros',
     sortOrder: 20,
     tiers: [
       {
         key: 'final-day-nm',
         familyKey: 'final-day',
-        title: 'Final Day',
+        title: 'Kazeros',
         difficulty: 'NM',
         itemLevel: 1710,
         gold: 40000,
+        goldType: 'standard',
         chestCost: 12800,
+        bonusRewardLabel: null,
+        bonusRewardAmount: null,
+        arkGridCoreAmount: '4+4',
+        arkGridCoreRarity: 'Epic',
         sortOrder: 1
       },
       {
         key: 'final-day-hm',
         familyKey: 'final-day',
-        title: 'Final Day',
+        title: 'Kazeros',
         difficulty: 'HM',
         itemLevel: 1730,
         gold: 52000,
+        goldType: 'standard',
         chestCost: 16640,
+        bonusRewardLabel: null,
+        bonusRewardAmount: null,
+        arkGridCoreAmount: '4+4',
+        arkGridCoreRarity: 'Legendary',
         sortOrder: 2
+      }
+    ]
+  },
+  {
+    key: 'cathedral',
+    commandName: 'cathedral',
+    title: 'Cathedral',
+    sortOrder: 30,
+    tiers: [
+      {
+        key: 'cathedral-lv1',
+        familyKey: 'cathedral',
+        title: 'Cathedral',
+        difficulty: 'LV1',
+        itemLevel: 1700,
+        gold: 30000,
+        goldType: 'bound',
+        chestCost: 9600,
+        bonusRewardLabel: 'Cathedral',
+        bonusRewardAmount: '8+12',
+        arkGridCoreAmount: '2+2',
+        arkGridCoreRarity: 'Epic',
+        sortOrder: 1
+      },
+      {
+        key: 'cathedral-lv2',
+        familyKey: 'cathedral',
+        title: 'Cathedral',
+        difficulty: 'LV2',
+        itemLevel: 1730,
+        gold: 40000,
+        goldType: 'bound',
+        chestCost: 12800,
+        bonusRewardLabel: 'Cathedral',
+        bonusRewardAmount: '24+36',
+        arkGridCoreAmount: '4+4',
+        arkGridCoreRarity: 'Legendary',
+        sortOrder: 2
+      },
+      {
+        key: 'cathedral-lv3',
+        familyKey: 'cathedral',
+        title: 'Cathedral',
+        difficulty: 'LV3',
+        itemLevel: 1740,
+        gold: 50000,
+        goldType: 'bound',
+        chestCost: 16000,
+        bonusRewardLabel: 'Cathedral',
+        bonusRewardAmount: '48+72',
+        arkGridCoreAmount: '6+6',
+        arkGridCoreRarity: 'Legendary',
+        sortOrder: 3
       }
     ]
   },
@@ -158,7 +250,7 @@ export const RAID_FAMILY_DEFINITIONS = [
     key: 'serca',
     commandName: 'serca',
     title: 'Serca',
-    sortOrder: 30,
+    sortOrder: 40,
     tiers: [
       {
         key: 'serca-nm',
@@ -167,7 +259,12 @@ export const RAID_FAMILY_DEFINITIONS = [
         difficulty: 'NM',
         itemLevel: 1710,
         gold: 35000,
+        goldType: 'standard',
         chestCost: 11200,
+        bonusRewardLabel: 'Serca',
+        bonusRewardAmount: '10+10',
+        arkGridCoreAmount: '4+4',
+        arkGridCoreRarity: 'Epic',
         sortOrder: 1
       },
       {
@@ -177,7 +274,12 @@ export const RAID_FAMILY_DEFINITIONS = [
         difficulty: 'HM',
         itemLevel: 1730,
         gold: 44000,
+        goldType: 'standard',
         chestCost: 14080,
+        bonusRewardLabel: 'Serca',
+        bonusRewardAmount: '25+25',
+        arkGridCoreAmount: '4+4',
+        arkGridCoreRarity: 'Legendary',
         sortOrder: 2
       },
       {
@@ -187,7 +289,12 @@ export const RAID_FAMILY_DEFINITIONS = [
         difficulty: 'NIGHTMARE',
         itemLevel: 1740,
         gold: 54000,
+        goldType: 'standard',
         chestCost: 17280,
+        bonusRewardLabel: 'Serca',
+        bonusRewardAmount: '25+25',
+        arkGridCoreAmount: '6+6',
+        arkGridCoreRarity: 'Legendary',
         sortOrder: 3
       }
     ]
@@ -195,10 +302,61 @@ export const RAID_FAMILY_DEFINITIONS = [
 ];
 
 export const RAID_TIER_DEFINITIONS = RAID_FAMILY_DEFINITIONS.flatMap((family) => family.tiers);
+export const RAID_LOG_MATCHERS = [
+  {
+    boss: 'Brelshaza, Ember in the Ashes',
+    difficulty: 'Normal',
+    familyKey: 'act-4',
+    raidKey: 'act-4-nm'
+  },
+  {
+    boss: 'Brelshaza, Ember in the Ashes',
+    difficulty: 'Hard',
+    familyKey: 'act-4',
+    raidKey: 'act-4-hm'
+  },
+  {
+    boss: 'Archdemon Kazeros',
+    difficulty: 'Normal',
+    familyKey: 'final-day',
+    raidKey: 'final-day-nm'
+  },
+  {
+    boss: 'Death Incarnate Kazeros',
+    difficulty: 'Hard',
+    familyKey: 'final-day',
+    raidKey: 'final-day-hm'
+  },
+  {
+    boss: 'Archbishop Arcenos',
+    difficulty: 'Level 1',
+    familyKey: 'cathedral',
+    raidKey: 'cathedral-lv1'
+  },
+  {
+    boss: 'Archbishop Arcenos',
+    difficulty: 'Level 2',
+    familyKey: 'cathedral',
+    raidKey: 'cathedral-lv2'
+  },
+  {
+    boss: 'Archbishop Arcenos',
+    difficulty: 'Level 3',
+    familyKey: 'cathedral',
+    raidKey: 'cathedral-lv3'
+  },
+  {
+    boss: 'Witch of Agony, Serca',
+    difficulty: 'Hard',
+    familyKey: 'serca',
+    useHighestEligibleTier: true
+  }
+];
 
 const raidFamilyByKey = new Map(RAID_FAMILY_DEFINITIONS.map((family) => [family.key, family]));
 const raidFamilyByCommandName = new Map(RAID_FAMILY_DEFINITIONS.map((family) => [family.commandName, family]));
 const raidTierByKey = new Map(RAID_TIER_DEFINITIONS.map((tier) => [tier.key, tier]));
+const raidLogMatcherIndex = new Map(RAID_LOG_MATCHERS.map((matcher) => [`${matcher.boss}::${matcher.difficulty}`, matcher]));
 const classLabels = {
   soul_eater: 'Souleater',
   dragon_knight: 'Valkyrie',
@@ -284,7 +442,47 @@ export function getRaidTierByKey(raidKey) {
  * @returns {string}
  */
 export function getDifficultyLabel(difficulty) {
-  return difficulty === 'NIGHTMARE' ? 'NMR' : difficulty;
+  if (difficulty === 'NIGHTMARE') {
+    return 'NiM';
+  }
+
+  if (difficulty === 'LV1') {
+    return 'Lv1';
+  }
+
+  if (difficulty === 'LV2') {
+    return 'Lv2';
+  }
+
+  if (difficulty === 'LV3') {
+    return 'Lv3';
+  }
+
+  return difficulty;
+}
+
+/**
+ * @param {RaidDifficulty} difficulty
+ * @returns {string}
+ */
+export function getDiscordDifficultyLabel(difficulty) {
+  if (difficulty === 'NIGHTMARE') {
+    return 'Nightmare';
+  }
+
+  if (difficulty === 'LV1') {
+    return 'Level 1';
+  }
+
+  if (difficulty === 'LV2') {
+    return 'Level 2';
+  }
+
+  if (difficulty === 'LV3') {
+    return 'Level 3';
+  }
+
+  return difficulty;
 }
 
 /**
@@ -311,6 +509,30 @@ export function resolveEligibleRaidTier(character, family) {
     .sort((left, right) => right.itemLevel - left.itemLevel);
 
   return sortedTiers.find((tier) => isRaidTierEligible(character, tier));
+}
+
+/**
+ * @param {{ itemLevel: number; name: string }} character
+ * @param {string} boss
+ * @param {string} difficulty
+ * @returns {RaidTierDefinition | null}
+ */
+export function resolveRaidTierFromLog(character, boss, difficulty) {
+  const matcher = raidLogMatcherIndex.get(`${boss}::${difficulty}`);
+  if (!matcher) {
+    return null;
+  }
+
+  if (matcher.raidKey) {
+    return getRaidTierByKey(matcher.raidKey) ?? null;
+  }
+
+  if (matcher.useHighestEligibleTier) {
+    const family = getRaidFamilyByKey(matcher.familyKey);
+    return family ? resolveEligibleRaidTier(character, family) ?? null : null;
+  }
+
+  return null;
 }
 
 /**

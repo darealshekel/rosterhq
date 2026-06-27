@@ -25,6 +25,8 @@ Roster HQ now has:
   Refreshes the public roster snapshot from lostark.bible.
 - `scripts/push-rosters-to-worker.mjs`
   Pushes the refreshed roster snapshot into the shared worker database so Discord autocomplete and eligibility stay in sync with the website.
+- `scripts/sync-weekly-log-completions.mjs`
+  Fetches lostark.bible logs for the characters shown on the website, derives Wednesday-window clears, and syncs log-backed completions into the shared worker state.
 
 ## Shared Data Model
 
@@ -33,7 +35,7 @@ Roster HQ now has:
 - `characters`
   Synced roster snapshot used by the website and bot for eligibility and autocomplete.
 - `raid_definitions`
-  Canonical raid tiers and gold/chest values.
+  Canonical raid tiers and gold/chest values for Armoche, Kazeros, Cathedral, and Serca.
 - `weekly_raid_completions`
   One row per `week_id + character_id + family_key`, with difficulty, bought-in state, completion source, and metadata.
 - `life_energy_status`
@@ -51,6 +53,12 @@ Weekly reset is defined once in `src/shared/rosterhq-core.js`:
 
 The website header, worker API, Discord reminder scheduler, and weekly completion `week_id` all use that same reset context.
 
+The 12-hour roster sync uses that same reset window when it derives log-backed raid clears:
+
+- include logs with `completed_at >= currentWeeklyStartAt`
+- exclude logs with `completed_at >= nextWeeklyResetAt`
+- sync only the latest clear per `character + raid family`
+
 The weekly checklist reminder is calculated as:
 
 - `weeklyReminderAt = nextWeeklyResetAt - 24 hours`
@@ -62,6 +70,11 @@ It is sent once per reset cycle and deduped in `reminder_dispatches`.
 Each roster panel now contains:
 
 - weekly raid tracker cards
+- current raid reward metadata for each tier:
+  - gold / bound gold
+  - chest buy-in cost
+  - Cathedral or Serca material reward
+  - Ark grid core amount and rarity
 - bought-in toggle per completed raid
 - a life energy panel with:
   - current value input
@@ -83,8 +96,9 @@ The Discord bot is implemented as a Discord interactions endpoint on the Cloudfl
 
 Slash commands are created for every tracked raid family:
 
-- `/act-4`
-- `/final-day`
+- `/armoche`
+- `/kazeros`
+- `/cathedral`
 - `/serca`
 
 Each command supports:
@@ -102,6 +116,27 @@ Command behavior:
 - ignores bought-in for `NONE`
 - returns an exact confirmation summary
 
+## Lostark.bible Log Sync
+
+The GitHub Pages workflow already runs every 12 hours. On each run it now:
+
+1. refreshes the roster snapshot from lostark.bible
+2. pushes the visible website characters into the shared worker database
+3. fetches each visible character's lostark.bible logs
+4. checks only the current Wednesday-to-Wednesday window
+5. auto-syncs final-boss clears back into `weekly_raid_completions` with `completed_source = 'log-sync'`
+
+Manual website toggles and Discord bot updates still win over log-sync rows. Log-sync only fills in missing clears and removes its own stale rows for the current week.
+
+Current boss mapping:
+
+- Armoche: `Brelshaza, Ember in the Ashes`
+- Kazeros: `Archdemon Kazeros` / `Death Incarnate Kazeros`
+- Cathedral: `Archbishop Arcenos` level variants
+- Serca: `Witch of Agony, Serca`
+
+Lostark.bible currently exposes Serca clears as `Hard` logs for tracked characters, so Serca log-sync difficulty is inferred from the character's highest eligible Serca tier at sync time.
+
 ## Required Environment
 
 ### Worker / reminders
@@ -112,6 +147,7 @@ Set these in Cloudflare Worker secrets or local `.dev.vars`:
 - `DISCORD_BOT_TOKEN`
 - `DISCORD_APPLICATION_ID`
 - `DISCORD_GUILD_ID`
+  Optional. Use it for faster guild-scoped command registration. Omit it for global commands.
 - `DISCORD_REMINDER_CHANNEL_ID`
 - `DISCORD_REMINDER_ROLE_ID`
 - `DISCORD_ROSTER_USER_MAP_JSON`
@@ -166,6 +202,7 @@ npm run sync:rosters
 $env:ROSTER_SYNC_API_URL='http://127.0.0.1:8787'
 $env:ROSTER_SYNC_TOKEN='your-sync-token'
 npm run sync:state
+npm run sync:logs
 ```
 
 6. Register slash commands:
@@ -173,7 +210,6 @@ npm run sync:state
 ```bash
 $env:DISCORD_APPLICATION_ID='...'
 $env:DISCORD_BOT_TOKEN='...'
-$env:DISCORD_GUILD_ID='...'
 npm run discord:register
 ```
 
@@ -193,6 +229,7 @@ Verified locally:
 - `node --check scripts/register-discord-commands.mjs`
 - `node --check scripts/push-rosters-to-worker.mjs`
 - `node --check scripts/generate-roster-data.mjs`
+- `node --check scripts/sync-weekly-log-completions.mjs`
 
 ## Deployment Notes
 

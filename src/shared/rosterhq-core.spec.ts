@@ -2,9 +2,11 @@ import {
   calculateLifeEnergyFromCurrent,
   clampLifeEnergy,
   formatLifeEnergyRemaining,
+  getDifficultyLabel,
   getNextDailyResetAt,
   getWeeklyResetContext,
-  projectLifeEnergyStatus
+  projectLifeEnergyStatus,
+  resolveRaidTierFromLog
 } from './rosterhq-core.js';
 
 describe('rosterhq-core', () => {
@@ -50,6 +52,57 @@ describe('rosterhq-core', () => {
   it('formats human-readable life energy timers', () => {
     expect(formatLifeEnergyRemaining(0)).toBe('Already full');
     expect(formatLifeEnergyRemaining(80 * 60000)).toBe('1h 20m');
+  });
+
+  it('formats roster raid difficulty labels consistently', () => {
+    expect(getDifficultyLabel('NIGHTMARE')).toBe('NiM');
+    expect(getDifficultyLabel('LV2')).toBe('Lv2');
+  });
+
+  it('maps final-boss logs back to the correct raid tier', () => {
+    expect(
+      resolveRaidTierFromLog(
+        {
+          itemLevel: 1730,
+          name: 'Eqe'
+        },
+        'Archbishop Arcenos',
+        'Level 2'
+      )?.key
+    ).toBe('cathedral-lv2');
+
+    expect(
+      resolveRaidTierFromLog(
+        {
+          itemLevel: 1745,
+          name: 'Bröke'
+        },
+        'Witch of Agony, Serca',
+        'Hard'
+      )?.key
+    ).toBe('serca-nightmare');
+
+    expect(
+      resolveRaidTierFromLog(
+        {
+          itemLevel: 1730,
+          name: 'Eqe'
+        },
+        'Witch of Agony, Serca',
+        'Hard'
+      )?.key
+    ).toBe('serca-hm');
+
+    expect(
+      resolveRaidTierFromLog(
+        {
+          itemLevel: 1700,
+          name: 'Sheshekel'
+        },
+        'Corvus Tul Rak',
+        'Hard'
+      )
+    ).toBeNull();
   });
 
   it('keeps weekly reminder timing aligned to the weekly reset definition', () => {

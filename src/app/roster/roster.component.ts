@@ -32,7 +32,12 @@ interface RaidFamilyDefinition {
     difficulty: RaidDifficulty;
     itemLevel: number;
     gold: number;
+    goldType: 'standard' | 'bound';
     chestCost: number;
+    bonusRewardLabel: string | null;
+    bonusRewardAmount: string | null;
+    arkGridCoreAmount: string | null;
+    arkGridCoreRarity: 'Epic' | 'Legendary' | null;
     sortOrder: number;
   }>;
 }
@@ -44,7 +49,12 @@ interface CharacterPlannerRaid {
   difficulty: RaidDifficulty;
   itemLevel: number;
   gold: number;
+  goldType: 'standard' | 'bound';
   chestCost: number;
+  bonusRewardLabel: string | null;
+  bonusRewardAmount: string | null;
+  arkGridCoreAmount: string | null;
+  arkGridCoreRarity: 'Epic' | 'Legendary' | null;
   buysChest: boolean;
   completed: boolean;
 }
@@ -263,6 +273,26 @@ export class RosterComponent implements OnInit, OnDestroy {
     return palette[classKey] ?? '#ff8ccc';
   }
 
+  getRaidGoldLabel(raid: CharacterPlannerRaid): string {
+    return raid.goldType === 'bound' ? 'Bound gold' : 'Gold';
+  }
+
+  getRaidRewardSummary(raid: CharacterPlannerRaid): string | null {
+    if (!raid.bonusRewardAmount || !raid.bonusRewardLabel) {
+      return null;
+    }
+
+    return `${raid.bonusRewardLabel} ${raid.bonusRewardAmount}`;
+  }
+
+  getRaidCoreSummary(raid: CharacterPlannerRaid): string | null {
+    if (!raid.arkGridCoreAmount || !raid.arkGridCoreRarity) {
+      return null;
+    }
+
+    return `Cores ${raid.arkGridCoreAmount} ${raid.arkGridCoreRarity}`;
+  }
+
   getLifeEnergyPreview(rosterKey: string) {
     const uiState = this.lifeEnergyUiState[rosterKey];
     const persisted = this.lifeEnergyIndex.get(rosterKey);
@@ -347,7 +377,12 @@ export class RosterComponent implements OnInit, OnDestroy {
         difficulty: tier.difficulty,
         itemLevel: tier.itemLevel,
         gold: tier.gold,
+        goldType: tier.goldType,
         chestCost: tier.chestCost,
+        bonusRewardLabel: tier.bonusRewardLabel,
+        bonusRewardAmount: tier.bonusRewardAmount,
+        arkGridCoreAmount: tier.arkGridCoreAmount,
+        arkGridCoreRarity: tier.arkGridCoreRarity,
         buysChest: completion?.boughtIn ?? false,
         completed: Boolean(completion)
       };

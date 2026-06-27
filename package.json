@@ -8,6 +8,7 @@
     "build:pages": "ng build --base-href /rosterhq/",
     "sync:rosters": "node scripts/generate-roster-data.mjs",
     "sync:state": "node scripts/push-rosters-to-worker.mjs",
+    "sync:logs": "node scripts/sync-weekly-log-completions.mjs",
     "discord:register": "node scripts/register-discord-commands.mjs",
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
